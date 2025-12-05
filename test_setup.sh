@@ -77,7 +77,8 @@ EOF
 
 run_ssh_command() {
     local cmd="$1"
-    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -p "$SSH_PORT" "${SSH_USER}@${SERVER_IP}" "$cmd" 2>/dev/null
+    # Use accept-new instead of no to avoid MITM attacks while still being automated
+    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -p "$SSH_PORT" "${SSH_USER}@${SERVER_IP}" "$cmd" 2>/dev/null
 }
 
 test_connectivity() {

@@ -284,7 +284,12 @@ main() {
         print_header "💾 Creating Swap Space"
         
         if [[ ! -f /swapfile ]]; then
-            # Parse swap size (e.g., 2G -> 2048M)
+            # Validate and parse swap size (e.g., 2G -> 2048M)
+            if [[ ! "$SWAP_SIZE" =~ ^[0-9]+G$ ]]; then
+                print_warning "Invalid swap size format: $SWAP_SIZE (expected format: 2G, 4G, etc.)"
+                SWAP_SIZE="2G"
+                print_info "Using default: $SWAP_SIZE"
+            fi
             swap_mb=$(($(echo "$SWAP_SIZE" | sed 's/G//') * 1024))
             
             fallocate -l "${swap_mb}M" /swapfile
@@ -357,10 +362,21 @@ main() {
                 SSH_PUBLIC_KEY=$(curl -fsSL "$FAIL2BAN_WHITELIST_URL" | grep "^ssh-" | head -n 1 || true)
                 if [[ -n "$SSH_PUBLIC_KEY" ]]; then
                     print_info "Using SSH key from whitelist URL"
-                    # Basic validation of SSH key format
-                    if [[ ! "$SSH_PUBLIC_KEY" =~ ^(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)\ [A-Za-z0-9+/]+ ]]; then
-                        print_warning "SSH key format looks suspicious, skipping"
-                        SSH_PUBLIC_KEY=""
+                    # Validate SSH key format using ssh-keygen if available
+                    if command -v ssh-keygen &> /dev/null; then
+                        # Write to temp file for validation
+                        echo "$SSH_PUBLIC_KEY" > /tmp/test_key.pub
+                        if ! ssh-keygen -l -f /tmp/test_key.pub &>/dev/null; then
+                            print_warning "SSH key validation failed, skipping"
+                            SSH_PUBLIC_KEY=""
+                        fi
+                        rm -f /tmp/test_key.pub
+                    else
+                        # Fallback to basic regex validation
+                        if [[ ! "$SSH_PUBLIC_KEY" =~ ^(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)\ [A-Za-z0-9+/=]+(\s|$) ]]; then
+                            print_warning "SSH key format looks suspicious, skipping"
+                            SSH_PUBLIC_KEY=""
+                        fi
                     fi
                 fi
             fi
@@ -776,9 +792,20 @@ fi
 # Additional validation: ensure IPs are reasonable
 VALID_IPS=""
 while IFS= read -r ip; do
-    # Basic IP validation (reject clearly invalid IPs)
+    # Validate IP format and octets (0-255)
     if [[ $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-        VALID_IPS="${VALID_IPS}${ip}"$'\n'
+        # Check each octet is 0-255
+        valid=true
+        IFS='.' read -ra octets <<< "$ip"
+        for octet in "${octets[@]}"; do
+            if (( octet > 255 )); then
+                valid=false
+                break
+            fi
+        done
+        if [[ "$valid" == "true" ]]; then
+            VALID_IPS="${VALID_IPS}${ip}"$'\n'
+        fi
     fi
 done <<< "$IPS"
 

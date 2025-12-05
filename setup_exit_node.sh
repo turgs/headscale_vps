@@ -90,7 +90,15 @@ main() {
         print_header "🔑 Generating Pre-Auth Key"
         
         print_info "Generating reusable pre-auth key..."
-        PREAUTH_KEY=$(sudo headscale preauthkeys create --user "$username" --reusable --expiration 24h 2>&1 | grep -oE '[a-f0-9]{64}' || true)
+        # Try JSON output first for reliable parsing
+        if PREAUTH_OUTPUT=$(sudo headscale preauthkeys create --user "$username" --reusable --expiration 24h --output json 2>/dev/null); then
+            PREAUTH_KEY=$(echo "$PREAUTH_OUTPUT" | grep -oE '"key":\s*"[^"]+"' | cut -d'"' -f4 || true)
+        fi
+        
+        # Fallback to regex extraction if JSON not available
+        if [[ -z "$PREAUTH_KEY" ]]; then
+            PREAUTH_KEY=$(sudo headscale preauthkeys create --user "$username" --reusable --expiration 24h 2>&1 | grep -oE '[a-f0-9]{48,}' | head -n1 || true)
+        fi
         
         if [[ -n "$PREAUTH_KEY" ]]; then
             print_success "Pre-auth key generated"
