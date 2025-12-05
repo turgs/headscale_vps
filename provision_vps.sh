@@ -447,6 +447,198 @@ EOF
         print_info "Skipping Docker (already done)"
     fi
     
+    # Install AdGuard Home for DNS filtering
+    if ! is_complete "adguard"; then
+        print_header "🛡️  Installing AdGuard Home (DNS Filtering)"
+        
+        # Free up port 53 (disable systemd-resolved stub)
+        print_info "Configuring DNS ports..."
+        mkdir -p /etc/systemd/resolved.conf.d
+        cat > /etc/systemd/resolved.conf.d/adguardhome.conf <<EOF
+[Resolve]
+DNS=127.0.0.1
+DNSStubListener=no
+EOF
+        systemctl restart systemd-resolved
+        
+        # Create AdGuard Home directory
+        mkdir -p /opt/adguardhome/work /opt/adguardhome/conf
+        
+        # Download and install AdGuard Home
+        print_info "Downloading AdGuard Home..."
+        ADGUARD_VERSION="v0.107.52"  # Latest stable version
+        ARCH=$(uname -m)
+        case "$ARCH" in
+            x86_64) ADGUARD_ARCH="amd64" ;;
+            aarch64) ADGUARD_ARCH="arm64" ;;
+            armv7l) ADGUARD_ARCH="armv7" ;;
+            *) ADGUARD_ARCH="amd64" ;;
+        esac
+        
+        wget -q "https://github.com/AdguardTeam/AdGuardHome/releases/download/${ADGUARD_VERSION}/AdGuardHome_linux_${ADGUARD_ARCH}.tar.gz" \
+            -O /tmp/adguard.tar.gz
+        
+        tar -xzf /tmp/adguard.tar.gz -C /opt/
+        rm -f /tmp/adguard.tar.gz
+        
+        # Create initial configuration with RethinkDNS-style blocking
+        print_info "Configuring AdGuard Home with ad/tracking/porn blocking..."
+        cat > /opt/adguardhome/conf/AdGuardHome.yaml <<'ADGUARD_EOF'
+bind_host: 127.0.0.1
+bind_port: 3000
+users:
+  - name: admin
+    password: $2a$10$Z5IqVj.qWzQ3Y8yCzXnW/OxQCKGHxW3wH0hKqL8RMH8kL5YbH4F/e  # changeme
+dns:
+  bind_hosts:
+    - 127.0.0.1
+  port: 53
+  ratelimit: 0
+  upstream_dns:
+    - https://dns.cloudflare.com/dns-query
+    - https://dns.google/dns-query
+  bootstrap_dns:
+    - 1.1.1.1
+    - 8.8.8.8
+  fallback_dns:
+    - 1.0.0.1
+  upstream_mode: load_balance
+  cache_size: 4194304
+  cache_ttl_min: 0
+  cache_ttl_max: 0
+  cache_optimistic: true
+  bogus_nxdomain: []
+  aaaa_disabled: false
+  enable_dnssec: true
+  edns_client_subnet:
+    custom_ip: ""
+    enabled: false
+    use_custom: false
+  max_goroutines: 300
+  handle_ddr: true
+  ipset: []
+  ipset_file: ""
+  filtering_enabled: true
+  filters_update_interval: 24
+  parental_enabled: false
+  safe_search:
+    enabled: false
+  safebrowsing_enabled: true
+  safebrowsing_cache_size: 1048576
+  safesearch_cache_size: 1048576
+  parental_cache_size: 1048576
+  cache_time: 30
+  rewrites: []
+  blocked_services:
+    schedule:
+      time_zone: UTC
+    ids: []
+  upstream_timeout: 10s
+  private_networks: []
+  use_private_ptr_resolvers: true
+  local_ptr_upstreams: []
+  use_dns64: false
+  dns64_prefixes: []
+  serve_http3: false
+  use_http3_upstreams: false
+filters:
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+    name: AdGuard DNS filter
+    id: 1
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt
+    name: AdAway Default Blocklist
+    id: 2
+  - enabled: true
+    url: https://big.oisd.nl/
+    name: OISD Blocklist Big
+    id: 3
+  - enabled: true
+    url: https://blocklistproject.github.io/Lists/porn.txt
+    name: The Block List Project - Porn
+    id: 4
+  - enabled: true
+    url: https://blocklistproject.github.io/Lists/tracking.txt
+    name: The Block List Project - Tracking
+    id: 5
+  - enabled: true
+    url: https://blocklistproject.github.io/Lists/malware.txt
+    name: The Block List Project - Malware
+    id: 6
+whitelist_filters: []
+user_rules:
+  - '@@||youtube.com^$important'
+  - '@@||googlevideo.com^$important'
+  - '@@||ytimg.com^$important'
+  - '@@||ggpht.com^$important'
+dhcp:
+  enabled: false
+clients:
+  runtime_sources:
+    whois: true
+    arp: true
+    rdns: true
+    dhcp: true
+    hosts: true
+  persistent: []
+log:
+  file: ""
+  max_backups: 0
+  max_size: 100
+  max_age: 3
+  compress: false
+  local_time: false
+  verbose: false
+os:
+  group: ""
+  user: ""
+  rlimit_nofile: 0
+schema_version: 28
+ADGUARD_EOF
+        
+        # Create systemd service
+        cat > /etc/systemd/system/adguardhome.service <<'SYSTEMD_EOF'
+[Unit]
+Description=AdGuard Home DNS server
+After=network.target
+StartLimitIntervalSec=5
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/AdGuardHome
+ExecStart=/opt/AdGuardHome/AdGuardHome --no-check-update -c /opt/adguardhome/conf/AdGuardHome.yaml -w /opt/adguardhome/work
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMD_EOF
+        
+        # Enable and start AdGuard Home
+        systemctl daemon-reload
+        systemctl enable adguardhome
+        systemctl start adguardhome
+        
+        # Wait for service to start
+        sleep 3
+        
+        if systemctl is-active --quiet adguardhome; then
+            print_success "AdGuard Home installed and started"
+            print_info "Web UI: http://$(curl -s ifconfig.me):3000 (username: admin, password: changeme)"
+            print_warning "IMPORTANT: Change the default password after setup!"
+        else
+            print_warning "AdGuard Home service failed to start"
+            journalctl -u adguardhome -n 20
+        fi
+        
+        mark_complete "adguard"
+    else
+        print_info "Skipping AdGuard Home (already done)"
+    fi
+    
     # Install Headscale
     if ! is_complete "headscale"; then
         print_header "🔷 Installing Headscale"
@@ -554,8 +746,9 @@ log:
 dns_config:
   override_local_dns: true
   nameservers:
-    - 1.1.1.1
-    - 8.8.8.8
+    # AdGuard Home running on localhost (installed by this script)
+    # Provides ad/tracking/porn blocking with custom allow/deny lists
+    - 127.0.0.1
   domains: []
   magic_dns: true
   base_domain: example.com
@@ -732,6 +925,9 @@ EOF
         
         # Allow Headscale
         ufw allow "$HEADSCALE_PORT"/tcp comment 'Headscale'
+        
+        # Allow AdGuard Home Web UI
+        ufw allow 3000/tcp comment 'AdGuard Home UI'
         
         # Allow Tailscale DERP
         ufw allow 3478/udp comment 'Tailscale STUN'

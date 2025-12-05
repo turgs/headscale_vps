@@ -249,131 +249,106 @@ On Windows/Mobile: Use the GUI as described above.
 
 ---
 
-## 🌐 DNS Configuration & Content Filtering
+## 🌐 Built-in DNS Filtering (AdGuard Home)
 
-### Built-in DNS Features
+### Automatic DNS-Based Content Filtering
 
-Headscale includes **MagicDNS** which provides:
-- ✅ Automatic DNS resolution for all devices in your network
-- ✅ Access devices by name instead of IP (e.g., `ssh laptop` instead of `ssh 100.64.0.2`)
-- ✅ DNS queries routed through your VPS when using exit node
-- ✅ Protection from DNS hijacking by ISPs
+The provisioning script **automatically installs AdGuard Home** on your VPS, providing:
 
-### Configuring Custom DNS for Content Filtering
+✅ **Ad blocking** - Blocks ads and tracking across all devices
+✅ **Porn blocking** - Blocks adult/inappropriate content  
+✅ **Malware protection** - Blocks known malicious domains
+✅ **Custom allow/deny lists** - Full control over what gets blocked
+✅ **YouTube safe mode OFF** - YouTube works normally (not restricted)
+✅ **MagicDNS** - Access devices by name (e.g., `ssh laptop`)
 
-You can configure custom DNS servers for:
-- 🛡️ **Ad blocking** (block ads and tracking)
-- 👨‍👩‍👧‍👦 **Family-safe filtering** (block adult/inappropriate content)
-- 🇺🇳 **Censorship bypass** (avoid government filtering)
+**No configuration needed** - DNS filtering is enabled by default for all devices using your VPN!
 
-#### Option 1: CleanBrowsing (Family-Safe + Ad Blocking)
+### How It Works
 
-SSH into your VPS and edit Headscale config:
+1. **AdGuard Home runs on your VPS** at `127.0.0.1:53`
+2. **Headscale routes all DNS queries** through AdGuard Home
+3. **AdGuard Home filters** using curated blocklists:
+   - AdGuard DNS filter (ads & trackers)
+   - AdAway Default Blocklist (ads)
+   - OISD Big List (comprehensive blocking)
+   - Block List Project (porn, tracking, malware)
+4. **YouTube is whitelisted** to avoid restricted mode
+
+### Managing DNS Filtering
+
+#### View Web Interface
+
+Access AdGuard Home's web UI to view statistics and manage settings:
+
+```
+http://YOUR_SERVER_IP:3000
+Username: admin
+Password: changeme
+```
+
+**⚠️ IMPORTANT:** Change the default password immediately after first login!
+
+#### Allow/Deny Specific Domains
+
+Use the management script on your VPS:
 
 ```bash
+# SSH into your VPS
 ssh deploy@YOUR_SERVER_IP -p 33003
-sudo nano /etc/headscale/config.yaml
+
+# Allow a domain (bypass all blocking)
+sudo bash manage_dns_filtering.sh allow example.com
+
+# Block a specific domain
+sudo bash manage_dns_filtering.sh deny badsite.com
+
+# List all custom rules
+sudo bash manage_dns_filtering.sh list
+
+# Reload configuration
+sudo bash manage_dns_filtering.sh reload
 ```
 
-Find the `dns_config` section and update nameservers:
-
-```yaml
-dns_config:
-  override_local_dns: true
-  nameservers:
-    # CleanBrowsing Family Filter (blocks adult content)
-    - 185.228.168.168
-    - 185.228.169.168
-    # Alternative: CleanBrowsing Adult Filter (more strict)
-    # - 185.228.168.10
-    # - 185.228.169.11
-  domains: []
-  magic_dns: true
-  base_domain: example.com
-```
-
-Restart Headscale:
-```bash
-sudo systemctl restart headscale
-```
-
-#### Option 2: AdGuard DNS (Ad Blocking + Tracking Protection)
-
-Use AdGuard DNS servers in the same config section:
-
-```yaml
-dns_config:
-  override_local_dns: true
-  nameservers:
-    # AdGuard DNS Default (ad blocking)
-    - 94.140.14.14
-    - 94.140.15.15
-    # Alternative: AdGuard Family Protection
-    # - 94.140.14.15
-    # - 94.140.15.16
-  domains: []
-  magic_dns: true
-  base_domain: example.com
-```
-
-#### Option 3: Cloudflare for Families (Malware + Adult Content Blocking)
-
-```yaml
-dns_config:
-  override_local_dns: true
-  nameservers:
-    # Cloudflare for Families (malware + adult content)
-    - 1.1.1.3
-    - 1.0.0.3
-    # Alternative: Malware blocking only
-    # - 1.1.1.2
-    # - 1.0.0.2
-  domains: []
-  magic_dns: true
-  base_domain: example.com
-```
-
-#### Option 4: Quad9 (Security + Privacy)
-
-```yaml
-dns_config:
-  override_local_dns: true
-  nameservers:
-    # Quad9 with DNSSEC
-    - 9.9.9.9
-    - 149.112.112.112
-  domains: []
-  magic_dns: true
-  base_domain: example.com
-```
-
-### DNS Configuration Comparison
-
-| Provider | Ad Blocking | Tracking Block | Adult Content | Malware Block | Privacy |
-|----------|-------------|----------------|---------------|---------------|---------|
-| CleanBrowsing Family | ❌ | ❌ | ✅ Strong | ✅ | Good |
-| AdGuard DNS | ✅ | ✅ | Optional | ✅ | Good |
-| Cloudflare Families | ❌ | ❌ | ✅ | ✅ | Excellent |
-| Quad9 | ❌ | ❌ | ❌ | ✅ | Excellent |
-
-**For family use with censorship bypass, we recommend:**
-1. **CleanBrowsing Family** - Best for protecting children while bypassing censorship
-2. **Cloudflare for Families** - Good balance of protection and privacy
-
-### Testing DNS Configuration
-
-After changing DNS settings:
+#### Examples
 
 ```bash
-# Reconnect all devices
-tailscale down
-tailscale up --login-server http://YOUR_SERVER_IP:8080
+# Allow a legitimate site that's being blocked
+sudo bash manage_dns_filtering.sh allow paypal.com
 
-# Test DNS resolution
-nslookup google.com
+# Block a specific social media site
+sudo bash manage_dns_filtering.sh deny tiktok.com
+
+# Allow all Microsoft domains
+sudo bash manage_dns_filtering.sh allow microsoft.com
+sudo bash manage_dns_filtering.sh allow live.com
+```
+
+### What Gets Blocked by Default
+
+- ✅ Ads on websites and in apps
+- ✅ Tracking scripts and analytics
+- ✅ Adult/porn websites
+- ✅ Known malware domains
+- ✅ Phishing sites
+- ❌ YouTube (explicitly allowed)
+- ❌ Legitimate websites
+- ❌ Social media (unless you specifically block it)
+
+### Testing DNS Filtering
+
+After connecting to your VPN:
+
+```bash
+# Test if ads are blocked
+# Visit: http://ads-blocker.com/testing/
 
 # Check your DNS server
 # Visit: https://www.dnsleaktest.com/
+# Should show your VPS IP
+
+# Try visiting a known ad/tracking domain (should be blocked)
+ping doubleclick.net
 ```
 
 ---
@@ -387,7 +362,8 @@ nslookup google.com
 ✅ **Hides browsing from ISP** - ISP cannot see which websites you visit
 ✅ **Encrypted connection** - WireGuard protocol (same as commercial VPNs)
 ✅ **Static exit IP** - Your VPS's IP address for all internet traffic
-✅ **DNS privacy** - Configure ad-blocking and content filtering
+✅ **Built-in ad/tracking/porn blocking** - AdGuard Home runs on your VPS
+✅ **Custom allow/deny lists** - Full control over DNS filtering
 
 ### What Users Should Know
 
@@ -419,10 +395,12 @@ nslookup google.com
 - Some countries restrict or ban VPN usage
 
 **Family Safety:**
-- Configure CleanBrowsing or similar DNS for content filtering
-- Test that inappropriate content is blocked
+- **Built-in ad/porn blocking** enabled by default via AdGuard Home
+- Test that inappropriate content is blocked: try visiting known adult sites (should be blocked)
+- Use `manage_dns_filtering.sh` to allow educational sites if they're blocked
 - Exit node can be disabled by users if they have device access
-- Consider device management software for young children
+- Monitor AdGuard Home logs at `http://YOUR_SERVER_IP:3000` to see what's being blocked
+- Consider device management software for young children for additional controls
 
 ### Quick Disable/Enable (for emergencies)
 
@@ -444,6 +422,7 @@ tailscale set --exit-node=
 ssh deploy@YOUR_SERVER_IP -p 33003
 sudo systemctl status headscale
 sudo systemctl status tailscaled
+sudo systemctl status adguardhome
 df -h  # Check disk space
 free -h  # Check memory
 ```

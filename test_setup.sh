@@ -164,6 +164,26 @@ test_docker_installed() {
     fi
 }
 
+test_adguard_installed() {
+    print_test "AdGuard Home installation"
+    if run_ssh_command "test -f /opt/AdGuardHome/AdGuardHome" &>/dev/null; then
+        print_pass
+    else
+        print_fail "AdGuard Home not installed"
+        return 1
+    fi
+}
+
+test_adguard_service() {
+    print_test "AdGuard Home service status"
+    if run_ssh_command "sudo systemctl is-active adguardhome" | grep -q "active"; then
+        print_pass
+    else
+        print_fail "AdGuard Home service not running"
+        return 1
+    fi
+}
+
 test_ip_forwarding() {
     print_test "IP forwarding enabled"
     ipv4=$(run_ssh_command "sysctl net.ipv4.ip_forward" | grep -oE '[0-9]+$')
@@ -254,10 +274,14 @@ main() {
     test_headscale_installed
     test_tailscale_installed
     test_docker_installed
+    test_adguard_installed
     
     print_header "🔷 Headscale Service"
     test_headscale_service
     test_headscale_port
+    
+    print_header "🛡️  DNS Filtering (AdGuard Home)"
+    test_adguard_service
     
     print_header "🌐 Network Configuration"
     test_ip_forwarding

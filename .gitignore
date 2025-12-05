@@ -8,6 +8,9 @@ noise_private.key
 headscale_data/
 headscale_socket/
 
+# AdGuard Home data
+adguardhome/
+
 # Kamal
 .kamal/
 
