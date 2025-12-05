@@ -157,7 +157,7 @@ sudo tailscale status
 
 ### 4. Connect Client Devices
 
-On your client devices:
+#### Linux/macOS:
 
 ```bash
 # Install Tailscale
@@ -167,15 +167,293 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up --login-server http://YOUR_SERVER_IP:8080 --authkey YOUR_PREAUTH_KEY
 ```
 
+#### Windows (Detailed Guide for Non-Technical Users):
+
+**Step 1: Download and Install Tailscale**
+
+1. Visit https://tailscale.com/download/windows
+2. Click "Download Tailscale for Windows"
+3. Run the downloaded installer (`tailscale-setup-*.exe`)
+4. Follow the installation wizard (click "Next" → "Install" → "Finish")
+5. Tailscale will start automatically after installation
+
+**Step 2: Connect to Your Headscale Server**
+
+1. Look for the Tailscale icon in your system tray (near the clock)
+   - It looks like a small network diagram icon
+2. Right-click the Tailscale icon
+3. Select "Settings" or "Preferences"
+4. Look for "Login Server" or "Custom Control Server"
+5. Enter your server address: `http://YOUR_SERVER_IP:8080`
+   - Replace `YOUR_SERVER_IP` with your actual VPS IP address
+   - Example: `http://192.168.1.100:8080`
+6. Click "Save" or "Apply"
+7. Click "Connect" or "Log in"
+8. A browser window will open - follow the authorization steps
+
+**Step 3: Enable Exit Node**
+
+1. Right-click the Tailscale icon in system tray
+2. Select "Exit Node" → Choose your VPS hostname
+   - It will show your VPS name (e.g., "headscale-vps" or similar)
+3. Click to enable it
+4. You should see a green checkmark or "Connected via exit node" message
+
+**Step 4: Verify Connection**
+
+1. Open your web browser
+2. Visit https://whatismyipaddress.com
+3. You should see your VPS's IP address (not your home IP)
+4. This confirms your traffic is routing through your VPS!
+
+**Troubleshooting Windows Connection:**
+- If Tailscale won't connect: Restart the Tailscale service (right-click icon → "Quit" → Open Tailscale again)
+- If you don't see exit node option: Wait 1-2 minutes for nodes to sync, then check again
+- If IP doesn't change: Make sure "Use exit node" is checked and enabled
+
+#### Android:
+
+1. Install "Tailscale" from Google Play Store
+2. Open the app and tap "Get Started"
+3. Tap the three dots menu (⋮) → "Settings"
+4. Tap "Use alternate server"
+5. Enter: `http://YOUR_SERVER_IP:8080`
+6. Tap "Connect"
+7. After connecting, tap the three dots again → "Exit node"
+8. Select your VPS from the list
+
+#### iOS:
+
+1. Install "Tailscale" from App Store
+2. Open the app and tap "Get Started"
+3. Tap Settings (gear icon)
+4. Tap "Login Server"
+5. Enter: `http://YOUR_SERVER_IP:8080`
+6. Tap "Connect"
+7. After connecting, go to Settings → "Exit Node"
+8. Select your VPS from the list
+
 ### 5. Use the Exit Node
 
-On client devices, route traffic through the VPS:
+On Linux/macOS command line:
 
 ```bash
+# See available exit nodes
+tailscale exit-node list
+
+# Use your VPS as exit node
 sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
 ```
 
-Or use the Tailscale GUI to select your exit node.
+On Windows/Mobile: Use the GUI as described above.
+
+---
+
+## 🌐 DNS Configuration & Content Filtering
+
+### Built-in DNS Features
+
+Headscale includes **MagicDNS** which provides:
+- ✅ Automatic DNS resolution for all devices in your network
+- ✅ Access devices by name instead of IP (e.g., `ssh laptop` instead of `ssh 100.64.0.2`)
+- ✅ DNS queries routed through your VPS when using exit node
+- ✅ Protection from DNS hijacking by ISPs
+
+### Configuring Custom DNS for Content Filtering
+
+You can configure custom DNS servers for:
+- 🛡️ **Ad blocking** (block ads and tracking)
+- 👨‍👩‍👧‍👦 **Family-safe filtering** (block adult/inappropriate content)
+- 🇺🇳 **Censorship bypass** (avoid government filtering)
+
+#### Option 1: CleanBrowsing (Family-Safe + Ad Blocking)
+
+SSH into your VPS and edit Headscale config:
+
+```bash
+ssh deploy@YOUR_SERVER_IP -p 33003
+sudo nano /etc/headscale/config.yaml
+```
+
+Find the `dns_config` section and update nameservers:
+
+```yaml
+dns_config:
+  override_local_dns: true
+  nameservers:
+    # CleanBrowsing Family Filter (blocks adult content)
+    - 185.228.168.168
+    - 185.228.169.168
+    # Alternative: CleanBrowsing Adult Filter (more strict)
+    # - 185.228.168.10
+    # - 185.228.169.11
+  domains: []
+  magic_dns: true
+  base_domain: example.com
+```
+
+Restart Headscale:
+```bash
+sudo systemctl restart headscale
+```
+
+#### Option 2: AdGuard DNS (Ad Blocking + Tracking Protection)
+
+Use AdGuard DNS servers in the same config section:
+
+```yaml
+dns_config:
+  override_local_dns: true
+  nameservers:
+    # AdGuard DNS Default (ad blocking)
+    - 94.140.14.14
+    - 94.140.15.15
+    # Alternative: AdGuard Family Protection
+    # - 94.140.14.15
+    # - 94.140.15.16
+  domains: []
+  magic_dns: true
+  base_domain: example.com
+```
+
+#### Option 3: Cloudflare for Families (Malware + Adult Content Blocking)
+
+```yaml
+dns_config:
+  override_local_dns: true
+  nameservers:
+    # Cloudflare for Families (malware + adult content)
+    - 1.1.1.3
+    - 1.0.0.3
+    # Alternative: Malware blocking only
+    # - 1.1.1.2
+    # - 1.0.0.2
+  domains: []
+  magic_dns: true
+  base_domain: example.com
+```
+
+#### Option 4: Quad9 (Security + Privacy)
+
+```yaml
+dns_config:
+  override_local_dns: true
+  nameservers:
+    # Quad9 with DNSSEC
+    - 9.9.9.9
+    - 149.112.112.112
+  domains: []
+  magic_dns: true
+  base_domain: example.com
+```
+
+### DNS Configuration Comparison
+
+| Provider | Ad Blocking | Tracking Block | Adult Content | Malware Block | Privacy |
+|----------|-------------|----------------|---------------|---------------|---------|
+| CleanBrowsing Family | ❌ | ❌ | ✅ Strong | ✅ | Good |
+| AdGuard DNS | ✅ | ✅ | Optional | ✅ | Good |
+| Cloudflare Families | ❌ | ❌ | ✅ | ✅ | Excellent |
+| Quad9 | ❌ | ❌ | ❌ | ✅ | Excellent |
+
+**For family use with censorship bypass, we recommend:**
+1. **CleanBrowsing Family** - Best for protecting children while bypassing censorship
+2. **Cloudflare for Families** - Good balance of protection and privacy
+
+### Testing DNS Configuration
+
+After changing DNS settings:
+
+```bash
+# Reconnect all devices
+tailscale down
+tailscale up --login-server http://YOUR_SERVER_IP:8080
+
+# Test DNS resolution
+nslookup google.com
+
+# Check your DNS server
+# Visit: https://www.dnsleaktest.com/
+```
+
+---
+
+## ⚠️ Important Information for Daily VPN Use
+
+### What This Setup Provides
+
+✅ **Bypasses government censorship** - Your ISP sees only encrypted traffic to your VPS
+✅ **Bypasses ISP filtering** - DNS and traffic routing through your VPS
+✅ **Hides browsing from ISP** - ISP cannot see which websites you visit
+✅ **Encrypted connection** - WireGuard protocol (same as commercial VPNs)
+✅ **Static exit IP** - Your VPS's IP address for all internet traffic
+✅ **DNS privacy** - Configure ad-blocking and content filtering
+
+### What Users Should Know
+
+**Speed Considerations:**
+- Internet speed limited by your VPS's connection speed
+- HostHatch typically provides 1 Gbps connections
+- Latency depends on VPS location (ping time will increase)
+
+**Data Usage:**
+- All internet traffic routes through your VPS
+- Check your VPS plan for bandwidth limits
+- HostHatch typically provides generous/unlimited bandwidth
+
+**Connection Stability:**
+- If VPS goes down, internet access will fail (while exit node is enabled)
+- Can quickly disable exit node to use direct connection
+- VPS should have 99%+ uptime with good hosting provider
+
+**Privacy Notes:**
+- Your VPS provider can see your traffic (choose trusted provider)
+- Better privacy than using ISP directly
+- Not anonymous (VPS IP can be traced to you if you're targeted)
+- For maximum privacy, consider additional layers (Tor, etc.)
+
+**Legal Considerations:**
+- Check local laws regarding VPN use
+- This is YOUR infrastructure (not a commercial VPN service)
+- You are responsible for how it's used
+- Some countries restrict or ban VPN usage
+
+**Family Safety:**
+- Configure CleanBrowsing or similar DNS for content filtering
+- Test that inappropriate content is blocked
+- Exit node can be disabled by users if they have device access
+- Consider device management software for young children
+
+### Quick Disable/Enable (for emergencies)
+
+**Windows:**
+- Right-click Tailscale icon → Uncheck "Use exit node"
+
+**Mobile:**
+- Open Tailscale app → Tap exit node → "None"
+
+**Linux/Mac:**
+```bash
+tailscale set --exit-node=
+```
+
+### Monitoring and Maintenance
+
+**Check VPS health weekly:**
+```bash
+ssh deploy@YOUR_SERVER_IP -p 33003
+sudo systemctl status headscale
+sudo systemctl status tailscaled
+df -h  # Check disk space
+free -h  # Check memory
+```
+
+**Update Headscale (when new versions release):**
+```bash
+sudo systemctl stop headscale
+# Download and install new version (see provision_vps.sh for process)
+sudo systemctl start headscale
+```
 
 ---
 

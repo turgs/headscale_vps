@@ -87,13 +87,19 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
 ```
 
-#### Windows:
+#### Windows (Step-by-Step):
 
-1. Download Tailscale from https://tailscale.com/download
-2. Install and run
-3. In the Tailscale app, go to Settings
-4. Change "Login Server" to: `http://YOUR_SERVER_IP:8080`
-5. Click "Connect"
+1. Download Tailscale from https://tailscale.com/download/windows
+2. Run the installer and follow the wizard
+3. After installation, find the Tailscale icon in your system tray (near clock)
+4. Right-click the icon → "Settings"
+5. Find "Login Server" or "Custom Control Server"
+6. Enter: `http://YOUR_SERVER_IP:8080` (use your actual VPS IP)
+7. Click "Save" then "Connect"
+8. After connected, right-click icon again → "Exit Node" → Select your VPS
+9. You're now routing through your VPS!
+
+**To verify:** Visit https://whatismyipaddress.com - you should see your VPS IP
 
 ---
 
