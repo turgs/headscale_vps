@@ -251,9 +251,26 @@ kamal deploy
 
 - **SSH Port**: Changed to 33003 to reduce automated attacks
 - **fail2ban**: Enabled by default with 24-hour bans
-- **Firewall**: Only necessary ports are opened
+- **Firewall**: Only necessary ports are opened (UFW)
 - **Root Access**: Maintained for emergency access with password
 - **Deploy User**: Primary user with key-only authentication
+
+### Important Security Considerations
+
+1. **External URLs**: If using `--fail2ban-whitelist-url`, ensure it points to a **trusted source you control**. The script fetches SSH keys and IP whitelists from this URL.
+
+2. **Package Verification**: The script attempts to verify Headscale package checksums when available. Review the script before running on production systems.
+
+3. **GPG Keys**: Docker and Tailscale GPG keys are fetched from official sources. For maximum security, verify fingerprints manually:
+   - Docker: `9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88`
+   - Tailscale: Official Tailscale package repository
+
+4. **Review Before Running**: Always review provisioning scripts before running them with root privileges:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh | less
+   ```
+
+5. **Minimal Permissions**: The script follows the principle of least privilege where possible
 
 ---
 

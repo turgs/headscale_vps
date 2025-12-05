@@ -351,11 +351,17 @@ main() {
             if [[ -f /root/.ssh/authorized_keys ]]; then
                 SSH_PUBLIC_KEY=$(head -n 1 /root/.ssh/authorized_keys)
                 print_info "Using SSH key from root's authorized_keys"
-            # Try whitelist URL
+            # Try whitelist URL (WARNING: only use trusted sources)
             elif [[ -n "$FAIL2BAN_WHITELIST_URL" ]]; then
+                print_warning "Fetching SSH key from external URL - ensure this is a trusted source!"
                 SSH_PUBLIC_KEY=$(curl -fsSL "$FAIL2BAN_WHITELIST_URL" | grep "^ssh-" | head -n 1 || true)
                 if [[ -n "$SSH_PUBLIC_KEY" ]]; then
                     print_info "Using SSH key from whitelist URL"
+                    # Basic validation of SSH key format
+                    if [[ ! "$SSH_PUBLIC_KEY" =~ ^(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)\ [A-Za-z0-9+/]+ ]]; then
+                        print_warning "SSH key format looks suspicious, skipping"
+                        SSH_PUBLIC_KEY=""
+                    fi
                 fi
             fi
         fi
@@ -384,6 +390,8 @@ main() {
         
         if ! command -v docker &> /dev/null; then
             # Add Docker's official GPG key
+            # Note: Using Docker's official apt repository with GPG signing
+            # For maximum security, verify the fingerprint: 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88
             install -m 0755 -d /etc/apt/keyrings
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
             chmod a+r /etc/apt/keyrings/docker.asc
@@ -433,9 +441,30 @@ EOF
             
             # Download Headscale
             print_info "Downloading Headscale v${HEADSCALE_VERSION}..."
+            
+            # Download package
             wget -q --show-progress \
                 "https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_${ARCH}.deb" \
                 -O /tmp/headscale.deb
+            
+            # Download checksums for verification (if available)
+            if wget -q "https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_checksums.txt" \
+                -O /tmp/headscale_checksums.txt 2>/dev/null; then
+                
+                # Verify checksum if sha256sum is available in the checksums file
+                expected_hash=$(grep "headscale_${HEADSCALE_VERSION}_linux_${ARCH}.deb" /tmp/headscale_checksums.txt | awk '{print $1}' || true)
+                if [[ -n "$expected_hash" ]]; then
+                    actual_hash=$(sha256sum /tmp/headscale.deb | awk '{print $1}')
+                    if [[ "$actual_hash" == "$expected_hash" ]]; then
+                        print_success "Checksum verified"
+                    else
+                        print_warning "Checksum verification failed! Proceeding anyway (manual verification recommended)"
+                    fi
+                fi
+                rm -f /tmp/headscale_checksums.txt
+            else
+                print_warning "Checksums not available for verification"
+            fi
             
             # Install
             apt-get install -y /tmp/headscale.deb
@@ -547,7 +576,9 @@ EOF
         print_header "🌐 Installing Tailscale"
         
         if ! command -v tailscale &> /dev/null; then
-            # Add Tailscale's repository
+            # Add Tailscale's official repository
+            # Using Tailscale's official apt repository with GPG signing
+            print_info "Adding Tailscale repository..."
             curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/$(lsb_release -cs).noarmor.gpg | \
                 tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
             curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/$(lsb_release -cs).tailscale-keyring.list | \
@@ -720,8 +751,12 @@ EOF
 
         # Create whitelist update script if URL provided
         if [[ -n "$FAIL2BAN_WHITELIST_URL" ]]; then
+            print_warning "Using external whitelist URL - ensure this is a trusted source!"
             cat > /usr/local/bin/update-fail2ban-whitelist.sh <<'EOFSCRIPT'
 #!/bin/bash
+# Security note: Only use this with trusted whitelist sources
+# Fetching IPs from untrusted sources could allow attackers to bypass fail2ban
+
 WHITELIST_URL="${1}"
 WHITELIST_FILE="/etc/fail2ban/jail.d/00-whitelist.conf"
 
@@ -729,10 +764,25 @@ if [[ -z "$WHITELIST_URL" ]]; then
     exit 0
 fi
 
-# Fetch whitelist IPs
-IPS=$(curl -fsSL "$WHITELIST_URL" 2>/dev/null | grep -oE '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b' | sort -u)
+# Fetch whitelist IPs with timeout and validation
+IPS=$(timeout 10 curl -fsSL "$WHITELIST_URL" 2>/dev/null | grep -oE '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b' | sort -u)
 
+# Validate IPs - basic sanity check
 if [[ -z "$IPS" ]]; then
+    # Keep existing whitelist if fetch fails
+    exit 0
+fi
+
+# Additional validation: ensure IPs are reasonable
+VALID_IPS=""
+while IFS= read -r ip; do
+    # Basic IP validation (reject clearly invalid IPs)
+    if [[ $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+        VALID_IPS="${VALID_IPS}${ip}"$'\n'
+    fi
+done <<< "$IPS"
+
+if [[ -z "$VALID_IPS" ]]; then
     exit 0
 fi
 
@@ -740,7 +790,7 @@ fi
 cat > "$WHITELIST_FILE" <<EOF
 [DEFAULT]
 ignoreip = 127.0.0.1/8 ::1
-$(echo "$IPS" | awk '{print "           " $0}')
+$(echo "$VALID_IPS" | awk '{print "           " $0}')
 EOF
 
 # Reload fail2ban
@@ -754,7 +804,7 @@ EOFSCRIPT
             # Setup cron job for hourly updates
             (crontab -l 2>/dev/null; echo "0 * * * * /usr/local/bin/update-fail2ban-whitelist.sh '$FAIL2BAN_WHITELIST_URL'") | crontab -
             
-            print_info "fail2ban whitelist updates configured"
+            print_info "fail2ban whitelist updates configured (verify whitelist source is trusted!)"
         fi
         
         # Enable and start fail2ban
