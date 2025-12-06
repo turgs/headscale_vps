@@ -689,15 +689,13 @@ SYSTEMD_EOF
         # Create config directory
         mkdir -p /etc/headscale
         
-        # Determine server URL and protocol based on domain
+        # Determine server URL based on domain
         if [[ -n "$HEADSCALE_DOMAIN" ]]; then
             SERVER_URL="https://${HEADSCALE_DOMAIN}"
-            USE_HTTPS="true"
         else
             # Use server's public IP
             SERVER_IP=$(curl -s ifconfig.me || echo "0.0.0.0")
             SERVER_URL="http://${SERVER_IP}:${HEADSCALE_PORT}"
-            USE_HTTPS="false"
         fi
         
         # Create ACL policy file
@@ -1064,12 +1062,17 @@ EOF
         # Allow SSH
         ufw allow "$SSH_PORT"/tcp comment 'SSH'
         
-        # Allow HTTP/HTTPS
+        # Allow HTTP/HTTPS (for Caddy/Let's Encrypt)
         ufw allow 80/tcp comment 'HTTP'
         ufw allow 443/tcp comment 'HTTPS'
         
-        # Allow Headscale
-        ufw allow "$HEADSCALE_PORT"/tcp comment 'Headscale'
+        # Allow Headscale port only if not using domain (no Caddy proxy)
+        if [[ -z "$HEADSCALE_DOMAIN" ]]; then
+            ufw allow "$HEADSCALE_PORT"/tcp comment 'Headscale'
+            print_info "Headscale port $HEADSCALE_PORT opened (direct access)"
+        else
+            print_info "Headscale port $HEADSCALE_PORT not opened (using Caddy proxy)"
+        fi
         
         # Allow AdGuard Home Web UI
         ufw allow 3000/tcp comment 'AdGuard Home UI'

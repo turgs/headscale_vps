@@ -13,14 +13,12 @@ groups:
   group:admins:
     - admin
   
-  # Family members with full access
+  # Family members with full access to each other's devices
   group:family:
     - mom
     - dad
-    - child1
-    - child2
   
-  # Restricted users (example: kids with limited access)
+  # Restricted users (example: kids with limited access to only their own devices)
   group:kids:
     - child1
     - child2
@@ -41,21 +39,8 @@ tagOwners:
 
 # Access Control Lists (ACLs)
 # Define which users/groups can access which resources
+# Rules are evaluated in order; first match wins
 acls:
-  # Allow all users to access their own devices
-  - action: accept
-    src:
-      - "*"
-    dst:
-      - "*:*"
-  
-  # Allow family members to access each other's devices
-  - action: accept
-    src:
-      - group:family
-    dst:
-      - group:family:*
-  
   # Allow admins full access to everything
   - action: accept
     src:
@@ -63,19 +48,29 @@ acls:
     dst:
       - "*:*"
   
-  # Restrict kids from accessing admin devices
+  # Allow family members to access each other's devices and exit node
+  - action: accept
+    src:
+      - group:family
+    dst:
+      - group:family:*
+      - tag:exit-node:*
+  
+  # Allow kids to access only their own devices and exit node (internet)
   - action: accept
     src:
       - group:kids
     dst:
       - group:kids:*
+      - tag:exit-node:*
   
-  # Allow guests limited access
+  # Allow guests limited access to their own devices and exit node
   - action: accept
     src:
       - group:guests
     dst:
       - group:guests:*
+      - tag:exit-node:*
 
 # SSH access control
 ssh:
