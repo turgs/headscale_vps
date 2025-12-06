@@ -610,8 +610,7 @@ Tunnel your VPN traffic through an obfuscation layer that makes it look like HTT
 
 **Resources**:
 - Shadowsocks: https://github.com/shadowsocks/shadowsocks-rust
-- V2Fly (current maintained version): https://www.v2fly.org/en_US/
-- V2Ray legacy (outdated): https://www.v2ray.com/
+- V2Fly (recommended): https://www.v2fly.org/en_US/
 
 #### Option B: Obfuscated OpenVPN
 Use OpenVPN with obfsproxy or Stunnel instead of WireGuard:
