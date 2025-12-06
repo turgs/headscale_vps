@@ -264,14 +264,28 @@ Add ACL policy to the config file to restrict inter-node communication.
 
 Example to restrict peer-to-peer communication (only allow internet access):
 ```yaml
+# First define groups in the config
+groups:
+  group:family:
+    - user1
+    - user2
+
+# Define tags (tags are applied to nodes)
+tagOwners:
+  tag:exit-node:
+    - user1
+
+# Then define ACL rules
 acls:
   - action: accept
     src: ["group:family"]
-    dst: ["autogroup:internet:*"]
+    dst: ["autogroup:internet:*"]  # autogroup:internet allows internet access
   - action: accept
     src: ["tag:exit-node"]
     dst: ["*:*"]
 ```
+
+Note: Replace `user1`, `user2` with your actual Headscale users created via `headscale users create <username>`
 
 **Why**: Limits damage if one device is compromised
 
@@ -338,9 +352,11 @@ Set up alerts for unusual patterns:
 
 ```bash
 # Generate short-lived, non-reusable keys when possible
+# Replace 'myuser' with your actual Headscale username
 sudo headscale preauthkeys create --user myuser --expiration 1h
 
 # Don't use --reusable for production
+# For one-time device registration, omit --reusable flag
 ```
 
 **Why**: Limits exposure if a key is leaked
@@ -351,9 +367,11 @@ Don't route ALL traffic through VPN:
 
 ```bash
 # On clients, exclude local traffic and trusted services
+# Replace YOUR_VPS with the actual hostname shown in 'tailscale status'
+# Example: tailscale up --exit-node=my-vps-hostname --exit-node-allow-lan-access
 tailscale up --exit-node=YOUR_VPS --exit-node-allow-lan-access
 
-# Or use route-based policies
+# Or use route-based policies to exclude specific subnets
 ```
 
 **Why**: Reduces exposure, improves performance, decreases suspicion
