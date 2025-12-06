@@ -1,0 +1,119 @@
+# Headscale ACL Policy Template
+# This file controls access between nodes in your network
+#
+# After editing this file:
+# 1. Copy to /etc/headscale/acl.yaml on your VPS
+# 2. Run: sudo systemctl reload headscale
+#
+# Documentation: https://headscale.net/policy-acls/
+
+# Define user groups for easier management
+groups:
+  # Admin users who can manage the network
+  group:admins:
+    - admin
+  
+  # Family members with full access
+  group:family:
+    - mom
+    - dad
+    - child1
+    - child2
+  
+  # Restricted users (example: kids with limited access)
+  group:kids:
+    - child1
+    - child2
+  
+  # Guest users with limited access
+  group:guests:
+    - guest
+
+# Tag owners - who can apply tags to nodes
+tagOwners:
+  # Exit node tag - only admins can designate exit nodes
+  tag:exit-node:
+    - group:admins
+  
+  # Server tag - for any server nodes
+  tag:server:
+    - group:admins
+
+# Access Control Lists (ACLs)
+# Define which users/groups can access which resources
+acls:
+  # Allow all users to access their own devices
+  - action: accept
+    src:
+      - "*"
+    dst:
+      - "*:*"
+  
+  # Allow family members to access each other's devices
+  - action: accept
+    src:
+      - group:family
+    dst:
+      - group:family:*
+  
+  # Allow admins full access to everything
+  - action: accept
+    src:
+      - group:admins
+    dst:
+      - "*:*"
+  
+  # Restrict kids from accessing admin devices
+  - action: accept
+    src:
+      - group:kids
+    dst:
+      - group:kids:*
+  
+  # Allow guests limited access
+  - action: accept
+    src:
+      - group:guests
+    dst:
+      - group:guests:*
+
+# SSH access control
+ssh:
+  - action: accept
+    src:
+      - group:admins
+    dst:
+      - "*"
+    users:
+      - root
+      - autogroup:nonroot
+  
+  - action: accept
+    src:
+      - group:family
+    dst:
+      - group:family
+    users:
+      - autogroup:nonroot
+
+# Auto-approve routes (e.g., exit nodes)
+# This automatically approves exit node routes
+autoApprovers:
+  routes:
+    # Auto-approve IPv4 default route (0.0.0.0/0) from exit nodes
+    0.0.0.0/0:
+      - tag:exit-node
+      - group:admins
+    
+    # Auto-approve IPv6 default route (::/0) from exit nodes
+    "::/0":
+      - tag:exit-node
+      - group:admins
+
+# Define named hosts for easier reference
+hosts:
+  vps-exit-node: 100.64.0.1
+  home-server: 100.64.0.2
+
+# Test configurations
+tests: []
