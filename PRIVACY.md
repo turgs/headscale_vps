@@ -635,11 +635,14 @@ Use OpenVPN with obfsproxy or Stunnel instead of WireGuard:
 Layer your VPN over an SSH tunnel or HTTPS tunnel:
 
 ```bash
-# Create SSH tunnel to VPS on port 443
-ssh -D 1080 -p 443 user@vps
+# Create SSH tunnel with port forwarding
+ssh -L 51820:localhost:51820 -p 443 user@vps
+# This forwards local port 51820 to VPS port 51820 (WireGuard)
+# Then configure WireGuard to connect to localhost:51820
 
-# Or use SSLH to multiplex SSH/HTTPS on port 443
-# Then tunnel WireGuard through the SSH connection
+# Or create SOCKS proxy and route WireGuard through it
+ssh -D 1080 -p 443 user@vps
+# Requires configuring WireGuard to use SOCKS proxy (complex)
 ```
 
 **Pros**:
@@ -718,7 +721,7 @@ Make your VPS harder to trace to you:
 
 **Methods**:
 - Pay with cryptocurrency (Monero preferred, Bitcoin with mixing)
-- Use privacy-focused VPS providers (e.g., 1984.is, Privex - research independently as policies change)
+- Use privacy-focused VPS providers (e.g., 1984.is, Privex - verify current policies and ToS)
 - Register with anonymous email (ProtonMail, anonymous webmail)
 - Never access VPS from your real IP (always through Tor)
 
@@ -802,7 +805,7 @@ Your Device → Obfuscation (V2Ray/Shadowsocks) → VPN 1 → VPN 2 → Internet
 
 **For threat modeling**:
 - "The Art of Invisibility" by Kevin Mitnick
-- The Grugq's OPSEC resources: https://grugq.github.io/ (various OPSEC writings)
+- The Grugq's blog and OPSEC resources (search: "grugq opsec" for various articles)
 - Micah Lee's guides: https://micahflee.com/
 
 ---
