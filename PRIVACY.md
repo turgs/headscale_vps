@@ -258,7 +258,12 @@ By default, all Headscale nodes can see each other. Restrict this:
 sudo nano /etc/headscale/config.yaml
 
 # Add ACL policy to restrict inter-node communication
-# Example: Only allow exit node, block peer-to-peer
+# See https://headscale.net/ref/acls/ for full documentation
+# Example: Only allow specific routes and block peer-to-peer:
+# acls:
+#   - action: accept
+#     src: ["group:family"]
+#     dst: ["autogroup:internet:*"]
 ```
 
 **Why**: Limits damage if one device is compromised
@@ -276,10 +281,16 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 ### 5. Enable Audit Logging
 
 ```bash
-# Log all Headscale activity
-sudo journalctl -u headscale -f > /var/log/headscale-audit.log &
+# View Headscale logs in real-time
+sudo journalctl -u headscale -f
 
-# Or configure structured logging in Headscale config
+# Configure log retention
+sudo nano /etc/systemd/journald.conf
+# Set: SystemMaxUse=500M
+
+# Or enable persistent logging in Headscale config
+sudo nano /etc/headscale/config.yaml
+# Add appropriate log_level and output settings
 ```
 
 **Why**: Helps detect suspicious activity or compromise
@@ -430,18 +441,19 @@ This setup is **NOT sufficient** for:
 ## 🎓 Further Reading
 
 **To learn more about VPN privacy:**
-- [EFF's Surveillance Self-Defense Guide](https://ssd.eff.org/)
-- [Tor Project Documentation](https://www.torproject.org/docs)
-- [IVPN Privacy Guides](https://www.ivpn.net/privacy-guides/) (educational, not endorsement)
-- [Wirecutter VPN Guide](https://www.nytimes.com/wirecutter/reviews/best-vpn-service/)
+- EFF's Surveillance Self-Defense Guide: https://ssd.eff.org/
+- Tor Project Documentation: https://www.torproject.org/docs
+- IVPN Privacy Guides: https://www.ivpn.net/privacy-guides/ (educational, not endorsement)
 
 **For threat modeling:**
-- [EFF's Threat Modeling Guide](https://ssd.eff.org/en/module/your-security-plan)
-- [OWASP Threat Modeling](https://owasp.org/www-community/Threat_Modeling)
+- EFF's Threat Modeling Guide: https://ssd.eff.org/en/module/your-security-plan
+- OWASP Threat Modeling: https://owasp.org/www-community/Threat_Modeling
 
 **WireGuard/Tailscale security:**
-- [WireGuard Protocol Whitepaper](https://www.wireguard.com/papers/wireguard.pdf)
-- [Tailscale Security Model](https://tailscale.com/security/)
+- WireGuard Protocol Whitepaper: https://www.wireguard.com/papers/wireguard.pdf
+- Tailscale Security Model: https://tailscale.com/security/
+
+*Note: External links may change over time. Verify sources independently.*
 
 ---
 
@@ -514,5 +526,4 @@ If you have questions about privacy, security, or threat modeling:
 
 ---
 
-*Last updated: December 2024*
 *This document aims to be honest and realistic about VPN capabilities without hype or overselling.*
