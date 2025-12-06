@@ -243,6 +243,7 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 
 ## 📚 Additional Documentation
 
+- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Complete admin reference (user management, ACLs, backups, troubleshooting)
 - **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling and ACL guide
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
 - **Headscale docs:** https://headscale.net/
@@ -256,7 +257,9 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 ├── provision_vps.sh          # Main setup script (run this)
 ├── setup_exit_node.sh        # Post-install exit node helper
 ├── test_setup.sh             # Remote VPS verification
+├── ADMIN_GUIDE.md            # Complete admin reference
 ├── SPLIT_TUNNELING.md        # Split tunneling & ACL guide
+├── QUICKSTART.md             # Quick setup guide
 └── config/
     ├── deploy.yml            # Kamal config (for updates)
     ├── headscale-config.yaml # Headscale configuration template
