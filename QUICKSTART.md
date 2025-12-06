@@ -34,6 +34,7 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 **What it does:**
 - Installs Headscale server
 - Installs Tailscale client
+- **Installs AdGuard Home** (ad/tracking/porn blocking)
 - Configures firewall (UFW)
 - Sets up fail2ban
 - Enables IP forwarding
@@ -41,6 +42,8 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 - Hardens SSH (port 33003)
 
 **Time:** ~5-10 minutes + reboot
+
+**DNS Filtering:** Ad blocking, tracking protection, and porn filtering are automatically enabled for all VPN users!
 
 ---
 
@@ -173,13 +176,51 @@ curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/test_setup
 
 ---
 
+## Managing DNS Filtering
+
+Your VPS now blocks ads, tracking, and adult content automatically!
+
+### Change AdGuard Home Password
+
+**IMPORTANT:** Change the default password immediately:
+
+1. Visit `http://YOUR_SERVER_IP:3000`
+2. Login with `admin` / `changeme`
+3. Go to Settings → Change Password
+
+### Allow/Block Specific Domains
+
+```bash
+# SSH into your VPS
+ssh deploy@YOUR_SERVER_IP -p 33003
+
+# Allow a site that's being blocked
+sudo bash manage_dns_filtering.sh allow example.com
+
+# Block a specific site
+sudo bash manage_dns_filtering.sh deny badsite.com
+
+# List all custom rules
+sudo bash manage_dns_filtering.sh list
+```
+
+### What's Blocked by Default?
+
+✅ Ads and tracking
+✅ Adult/porn websites
+✅ Known malware domains
+❌ YouTube (works normally)
+❌ Legitimate sites
+
+---
+
 ## Next Steps
 
 - **Add more devices**: Use the same `tailscale up` command on other devices
 - **Create more users**: `sudo headscale users create username`
 - **Configure ACLs**: Edit `/etc/headscale/config.yaml`
 - **Setup HTTPS**: Add a reverse proxy (Caddy/Nginx)
-- **Monitor**: Check logs with `sudo journalctl -u headscale -f`
+- **Monitor DNS filtering**: Visit `http://YOUR_SERVER_IP:3000`
 
 ---
 
@@ -201,8 +242,12 @@ sudo tailscale status
 # View Headscale logs
 sudo journalctl -u headscale -f
 
-# Restart Headscale
+# View AdGuard Home logs
+sudo journalctl -u adguardhome -f
+
+# Restart services
 sudo systemctl restart headscale
+sudo systemctl restart adguardhome
 ```
 
 ---

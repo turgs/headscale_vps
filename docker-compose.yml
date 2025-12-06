@@ -36,6 +36,22 @@ services:
     environment:
       - TZ=UTC
 
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome:latest
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "3000:3000/tcp"
+    volumes:
+      - adguard_work:/opt/adguardhome/work
+      - adguard_conf:/opt/adguardhome/conf
+    networks:
+      - headscale-net
+    environment:
+      - TZ=UTC
+
 networks:
   headscale-net:
     driver: bridge
@@ -43,3 +59,5 @@ networks:
 volumes:
   headscale_data:
   headscale_socket:
+  adguard_work:
+  adguard_conf:

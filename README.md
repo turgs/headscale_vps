@@ -141,13 +141,25 @@ ssh deploy@YOUR_SERVER_IP -p 33003
 sudo headscale users create myuser
 ```
 
-### 2. Generate Pre-Auth Key
+### 2. **IMPORTANT:** Change AdGuard Home Password
+
+```bash
+# Visit the web UI
+http://YOUR_SERVER_IP:3000
+
+# Login: admin / changeme
+# Go to Settings → Change Password
+```
+
+**⚠️ Change this immediately for security!**
+
+### 3. Generate Pre-Auth Key
 
 ```bash
 sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 ```
 
-### 3. Connect the VPS as Exit Node
+### 4. Connect the VPS as Exit Node
 
 The VPS is already configured as an exit node. Verify:
 
@@ -155,7 +167,7 @@ The VPS is already configured as an exit node. Verify:
 sudo tailscale status
 ```
 
-### 4. Connect Client Devices
+### 5. Connect Client Devices
 
 #### Linux/macOS:
 
@@ -467,6 +479,47 @@ sudo ufw status
 
 ---
 
+## 🏥 Health Monitoring
+
+Check your VPS health anytime with the included health check script:
+
+```bash
+# SSH into your VPS
+ssh deploy@YOUR_SERVER_IP -p 33003
+
+# Run health check
+bash check_health.sh
+```
+
+**What it checks:**
+- ✅ Service status (Headscale, Tailscale, AdGuard Home, Docker, fail2ban)
+- ✅ System resources (CPU, memory, disk usage)
+- ✅ Connected nodes count
+- ✅ Exit node status
+- ✅ Recent errors
+- ✅ Active fail2ban bans
+
+**Output example:**
+```
+🏥 Headscale VPS Health Check
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Services Status:
+  Headscale: ✓ Running
+  Tailscale: ✓ Running
+  AdGuard Home: ✓ Running
+  Docker: ✓ Running
+  fail2ban: ✓ Running
+
+System Resources:
+  CPU Load: 0.45
+  Memory: 856M / 1.9G
+  Disk Usage: 3.2G / 25G (15%)
+  Uptime: up 3 days, 5 hours
+```
+
+---
+
 ## 🐳 Docker Deployment (Alternative)
 
 If you prefer Docker deployment:
@@ -493,13 +546,18 @@ kamal deploy
 
 ```
 .
-├── README.md                 # This file
-├── provision_vps.sh          # Main provisioning script
-├── docker-compose.yml        # Docker Compose configuration
-├── config/
-│   ├── deploy.yml           # Kamal deployment config
-│   └── headscale-config.yaml # Headscale configuration template
-└── test_setup.sh            # Testing script
+├── README.md                   # Comprehensive documentation
+├── QUICKSTART.md               # Quick start guide
+├── provision_vps.sh            # Main provisioning script
+├── setup_exit_node.sh          # Post-install exit node setup
+├── manage_dns_filtering.sh     # DNS filtering allow/deny manager
+├── test_setup.sh               # Remote VPS testing script
+├── check_health.sh             # Health monitoring script
+├── validate_scripts.sh         # Local validation script
+├── docker-compose.yml          # Docker Compose configuration (with AdGuard Home)
+└── config/
+    ├── deploy.yml              # Kamal deployment config
+    └── headscale-config.yaml   # Headscale configuration template
 ```
 
 ---
