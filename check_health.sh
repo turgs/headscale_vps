@@ -42,8 +42,14 @@ print_stat() {
     local warning_threshold=${3:-}
     
     echo -n "  $label: "
-    if [[ -n "$warning_threshold" ]] && (( $(echo "$value > $warning_threshold" | bc -l 2>/dev/null || echo 0) )); then
-        echo -e "${YELLOW}$value${NC}"
+    if [[ -n "$warning_threshold" ]]; then
+        # Use awk for floating point comparison (more portable than bc)
+        is_warning=$(awk -v val="$value" -v thresh="$warning_threshold" 'BEGIN {print (val > thresh ? 1 : 0)}' 2>/dev/null || echo 0)
+        if [[ "$is_warning" == "1" ]]; then
+            echo -e "${YELLOW}$value${NC}"
+        else
+            echo -e "${GREEN}$value${NC}"
+        fi
     else
         echo -e "${GREEN}$value${NC}"
     fi
@@ -90,7 +96,8 @@ main() {
     
     # Count connected Headscale nodes
     if command -v headscale &>/dev/null; then
-        node_count=$(headscale nodes list 2>/dev/null | grep -c "^id:" || echo "0")
+        # Count nodes excluding the header line (more robust)
+        node_count=$(headscale nodes list 2>/dev/null | tail -n +2 | grep -v "^$" | wc -l || echo "0")
         print_stat "Connected Nodes" "$node_count"
     fi
     
