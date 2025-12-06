@@ -256,14 +256,21 @@ By default, all Headscale nodes can see each other. Restrict this:
 
 ```bash
 sudo nano /etc/headscale/config.yaml
+```
 
-# Add ACL policy to restrict inter-node communication
-# See https://headscale.net/ref/acls/ for full documentation
-# Example: Only allow specific routes and block peer-to-peer:
-# acls:
-#   - action: accept
-#     src: ["group:family"]
-#     dst: ["autogroup:internet:*"]
+Add ACL policy to the config file to restrict inter-node communication.
+
+**Important**: ACL configuration is complex and security-critical. See official documentation: https://headscale.net/ref/acls/
+
+Example to restrict peer-to-peer communication (only allow internet access):
+```yaml
+acls:
+  - action: accept
+    src: ["group:family"]
+    dst: ["autogroup:internet:*"]
+  - action: accept
+    src: ["tag:exit-node"]
+    dst: ["*:*"]
 ```
 
 **Why**: Limits damage if one device is compromised
@@ -284,14 +291,25 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 # View Headscale logs in real-time
 sudo journalctl -u headscale -f
 
-# Configure log retention
+# Configure log retention in journald
 sudo nano /etc/systemd/journald.conf
-# Set: SystemMaxUse=500M
-
-# Or enable persistent logging in Headscale config
-sudo nano /etc/headscale/config.yaml
-# Add appropriate log_level and output settings
+# Uncomment and set: SystemMaxUse=500M
+# Then restart: sudo systemctl restart systemd-journald
 ```
+
+For more detailed logging, edit Headscale config:
+```bash
+sudo nano /etc/headscale/config.yaml
+```
+
+Add or modify the log section:
+```yaml
+log:
+  level: info  # Options: trace, debug, info, warn, error
+  format: text # Options: json, text
+```
+
+Then restart Headscale: `sudo systemctl restart headscale`
 
 **Why**: Helps detect suspicious activity or compromise
 
