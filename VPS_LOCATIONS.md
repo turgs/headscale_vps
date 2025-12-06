@@ -117,11 +117,13 @@ tailscale set --exit-node singapore-vps-hostname
 
 **VPS Providers with UK Locations:**
 - **HostHatch**: London, UK
-- **Hetzner**: Falkenstein (Germany) or Ashburn (good for UK)
+- **Hetzner**: UK locations available
 - **OVH**: London, UK
 - **Vultr**: London, UK
 - **DigitalOcean**: London, UK
 - **Linode**: London, UK
+
+**Note**: Only UK-based servers work for BBC iPlayer. Germany (Hetzner Falkenstein) and US locations (Ashburn) will NOT work.
 
 ### Does BBC iPlayer Work?
 
@@ -160,6 +162,12 @@ Based on your situation (Brisbane-based, UK heritage family, 250/100 NBN):
 ---
 
 ## 🚀 Quick Setup for Multiple VPS
+
+**Security Note**: Before running any remote scripts, you should review them first:
+```bash
+# Inspect the provision script
+curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh | less
+```
 
 ### 1. Provision First VPS (Singapore)
 ```bash
