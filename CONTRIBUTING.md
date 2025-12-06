@@ -24,15 +24,17 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 ### Testing Scripts
 
-Before submitting, run the validation script:
+Before submitting, validate script syntax:
 
 ```bash
-./validate_scripts.sh
+bash -n provision_vps.sh
+bash -n setup_exit_node.sh
+bash -n test_setup.sh
 ```
 
 This checks:
 - Script syntax
-- File permissions
+- No shell errors
 - Configuration validity
 - Security issues
 
@@ -74,9 +76,8 @@ This checks:
 ```bash
 # Syntax check
 bash -n provision_vps.sh
-
-# Run validation
-./validate_scripts.sh
+bash -n setup_exit_node.sh
+bash -n test_setup.sh
 
 # Test on a VM (recommended)
 # Use a throw-away VM for testing provisioning scripts

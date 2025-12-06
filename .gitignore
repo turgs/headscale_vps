@@ -4,10 +4,6 @@
 private.key
 noise_private.key
 
-# Docker volumes
-headscale_data/
-headscale_socket/
-
 # AdGuard Home data
 adguardhome/
 

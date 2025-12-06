@@ -190,19 +190,23 @@ Your VPS now blocks ads, tracking, and adult content automatically!
 
 ### Allow/Block Specific Domains
 
+To allow a blocked site, edit the AdGuard Home config:
+
 ```bash
 # SSH into your VPS
 ssh deploy@YOUR_SERVER_IP -p 33003
 
-# Allow a site that's being blocked
-sudo bash manage_dns_filtering.sh allow example.com
+# Edit config file
+sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
 
-# Block a specific site
-sudo bash manage_dns_filtering.sh deny badsite.com
+# Add to user_rules section:
+# @@||example.com^$important
 
-# List all custom rules
-sudo bash manage_dns_filtering.sh list
+# Restart AdGuard Home
+sudo systemctl restart adguardhome
 ```
+
+Or use the web UI at `http://YOUR_SERVER_IP:3000` → Filters → Custom filtering rules
 
 ### What's Blocked by Default?
 
