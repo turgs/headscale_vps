@@ -28,11 +28,12 @@ Choosing the right VPS location is crucial for balancing performance, latency, a
 - **Providers**: HostHatch (UK), Hetzner (Germany/UK), OVH (UK)
 - **Best for**: BBC iPlayer, ITV Hub, Channel 4, UK banking
 
-**Scotland/Ireland**
+**Scotland & Other UK Regions**
 - **Latency**: Similar to London (280-320ms)
 - **Speed**: Good (100-200 Mbps)
 - **Providers**: Various UK-region providers
 - **Note**: For BBC iPlayer access, **any UK location works** (England, Scotland, Wales, Northern Ireland)
+- **Important**: Ireland is NOT part of the UK and does not work for UK content services
 
 ---
 
@@ -93,7 +94,7 @@ tailscale set --exit-node singapore-vps-hostname
 | **Tokyo** | 100-140ms | Excellent (180-230 Mbps) | ❌ No | Alternative to Singapore |
 | **Sydney** | 5-20ms | Excellent (240+ Mbps) | ❌ No | Best latency, but defeats privacy purpose |
 | **London** | 280-320ms | Good (100-200 Mbps) | ✅ Yes | BBC iPlayer, UK banking |
-| **Frankfurt** | 270-310ms | Good (110-200 Mbps) | ❌ No (⚠️ Some services) | EU content, close to UK |
+| **Frankfurt** | 270-310ms | Good (110-200 Mbps) | ❌ No | EU content, GDPR compliance |
 | **Los Angeles** | 150-190ms | Good (150-220 Mbps) | ❌ No | US content, middle ground |
 | **New York** | 200-240ms | Good (120-180 Mbps) | ❌ No | US content, higher latency |
 
@@ -106,13 +107,13 @@ tailscale set --exit-node singapore-vps-hostname
 **Geographic Requirements:**
 - BBC iPlayer, ITV Hub, Channel 4, etc. require a **UK IP address**
 - **Any UK region works**: England, Scotland, Wales, Northern Ireland
-- London, Manchester, Edinburgh, Glasgow, Dublin (Ireland may not work for all services)
+- **Ireland does NOT work** - Since Brexit, Ireland is EU-only and not considered UK for content licensing
 
 **Best UK Locations:**
 1. **London** - Most reliable, best network peering
 2. **Manchester** - Good alternative
 3. **Edinburgh/Glasgow (Scotland)** - Works perfectly for BBC iPlayer
-4. **Dublin (Ireland)** - May work, but technically not UK (test first)
+4. **Belfast (Northern Ireland)** - Also works, but fewer VPS providers
 
 **VPS Providers with UK Locations:**
 - **HostHatch**: London, UK
