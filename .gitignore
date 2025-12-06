@@ -1,0 +1,35 @@
+# Headscale data
+*.sqlite
+*.db
+private.key
+noise_private.key
+
+# AdGuard Home data
+adguardhome/
+
+# Kamal
+.kamal/
+
+# Secrets and credentials
+.env
+.env.*
+*.key
+*.pem
+*.crt
+secrets.yml
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+Thumbs.db

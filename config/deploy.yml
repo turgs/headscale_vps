@@ -1,0 +1,70 @@
+# Kamal deployment configuration for Headscale
+# See https://kamal-deploy.org/ for full documentation
+
+service: headscale
+
+# Docker image to deploy
+image: headscale/headscale
+
+# Servers to deploy to
+servers:
+  web:
+    - YOUR_SERVER_IP
+
+# Registry configuration (optional, for private images)
+# registry:
+#   server: ghcr.io
+#   username: your-github-username
+#   password:
+#     - KAMAL_REGISTRY_PASSWORD
+
+# Environment variables
+env:
+  clear:
+    TZ: UTC
+  # secret:
+  #   - HEADSCALE_DOMAIN
+
+# SSH configuration
+ssh:
+  user: deploy
+  port: 33003
+
+# Service configuration
+traefik:
+  enabled: false
+
+# Healthcheck
+healthcheck:
+  path: /health
+  port: 8080
+  max_attempts: 7
+  interval: 20s
+
+# Volumes to persist data
+volumes:
+  - "headscale_data:/var/lib/headscale"
+  - "headscale_config:/etc/headscale"
+
+# Accessories (additional services)
+accessories:
+  headscale-ui:
+    image: ghcr.io/gurucomputing/headscale-ui:latest
+    host: YOUR_SERVER_IP
+    port: "9080:80"
+    volumes:
+      - "headscale_ui_data:/app/data"
+
+# Pre-deploy hooks
+# asset_path: /path/to/assets
+# hooks:
+#   pre-deploy:
+#     - bundle exec rake assets:precompile
+
+# Retention settings for old images
+retain_containers: 5
+
+# Builder configuration (optional)
+# builder:
+#   arch: amd64
+#   multiarch: false
