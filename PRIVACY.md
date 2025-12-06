@@ -610,8 +610,8 @@ Tunnel your VPN traffic through an obfuscation layer that makes it look like HTT
 
 **Resources**:
 - Shadowsocks: https://github.com/shadowsocks/shadowsocks-rust
-- V2Ray: https://www.v2ray.com/
-- Tutorial: https://www.v2fly.org/en_US/
+- V2Fly (current maintained version): https://www.v2fly.org/en_US/
+- V2Ray legacy (outdated): https://www.v2ray.com/
 
 #### Option B: Obfuscated OpenVPN
 Use OpenVPN with obfsproxy or Stunnel instead of WireGuard:
@@ -719,7 +719,7 @@ Make your VPS harder to trace to you:
 
 **Methods**:
 - Pay with cryptocurrency (Monero preferred, Bitcoin with mixing)
-- Use privacy-focused VPS providers (1984.is, Privex, etc.)
+- Use privacy-focused VPS providers (e.g., 1984.is, Privex - research independently as policies change)
 - Register with anonymous email (ProtonMail, anonymous webmail)
 - Never access VPS from your real IP (always through Tor)
 
@@ -803,7 +803,7 @@ Your Device → Obfuscation (V2Ray/Shadowsocks) → VPN 1 → VPN 2 → Internet
 
 **For threat modeling**:
 - "The Art of Invisibility" by Kevin Mitnick
-- OPSEC101: https://grugq.github.io/
+- The Grugq's OPSEC resources: https://grugq.github.io/ (various OPSEC writings)
 - Micah Lee's guides: https://micahflee.com/
 
 ---
