@@ -159,6 +159,7 @@ Options:
 - Your VPS provider can see traffic
 - Better privacy than ISP directly
 - Not anonymous (VPS traceable to you)
+- **📖 Read [PRIVACY.md](PRIVACY.md) for detailed privacy/security considerations**
 
 **For Family Use:**
 - Ad/porn blocking enabled by default
@@ -197,6 +198,7 @@ sudo headscale routes enable -r <route-id>
 ## 📚 Additional Documentation
 
 - **QUICKSTART.md** - Step-by-step setup guide
+- **PRIVACY.md** - Comprehensive privacy & security guide (READ THIS!)
 - **Headscale docs:** https://headscale.net/
 - **Tailscale docs:** https://tailscale.com/kb/
 
