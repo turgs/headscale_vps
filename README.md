@@ -24,6 +24,18 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 
 ---
 
+## 🌍 Choosing a VPS Location
+
+**Not sure where to host your VPS?** See our [VPS Location Selection Guide](VPS_LOCATIONS.md) for:
+- Performance vs. content access trade-offs
+- Specific recommendations for Australia/Brisbane users
+- How to access UK services (BBC iPlayer) from Australia
+- Multi-VPS setup for best of both worlds
+
+**Quick tip:** For Brisbane users, Singapore offers best performance (~100ms latency), while UK locations enable BBC iPlayer access (~300ms latency). Consider running both!
+
+---
+
 ## 📖 Post-Installation Steps
 
 ### 1. Change AdGuard Home Password
@@ -196,7 +208,8 @@ sudo headscale routes enable -r <route-id>
 
 ## 📚 Additional Documentation
 
-- **QUICKSTART.md** - Step-by-step setup guide
+- **[VPS_LOCATIONS.md](VPS_LOCATIONS.md)** - VPS location selection guide
+- **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
 - **Headscale docs:** https://headscale.net/
 - **Tailscale docs:** https://tailscale.com/kb/
 

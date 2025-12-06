@@ -8,6 +8,8 @@ Get your Headscale VPS up and running in minutes!
 - SSH access as root
 - Your SSH public key (optional but recommended)
 
+**💡 Need help choosing a VPS location?** See [VPS_LOCATIONS.md](VPS_LOCATIONS.md) for recommendations based on your location and needs (e.g., Singapore for Brisbane users, UK for BBC iPlayer access).
+
 ## Step 1: Provision the VPS
 
 ### Option A: One-Liner (Simplest)
@@ -269,6 +271,7 @@ sudo systemctl restart adguardhome
 ## Support
 
 - Full docs: [README.md](README.md)
+- VPS location guide: [VPS_LOCATIONS.md](VPS_LOCATIONS.md)
 - Headscale docs: https://headscale.net/
 - Issues: https://github.com/turgs/headscale_vps/issues
 
