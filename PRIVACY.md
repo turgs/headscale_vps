@@ -351,6 +351,9 @@ Set up alerts for unusual patterns:
 ### 8. Use Strong Pre-Auth Keys
 
 ```bash
+# First, ensure you have a Headscale user created:
+# sudo headscale users create myuser
+
 # Generate short-lived, non-reusable keys when possible
 # Replace 'myuser' with your actual Headscale username
 sudo headscale preauthkeys create --user myuser --expiration 1h
@@ -367,9 +370,11 @@ Don't route ALL traffic through VPN:
 
 ```bash
 # On clients, exclude local traffic and trusted services
-# Replace YOUR_VPS with the actual hostname shown in 'tailscale status'
+# Run 'tailscale status' to see your VPS node name (not IP address)
+# Use the node name shown there (e.g., 'vps-hostname' or 'ubuntu-server')
 # Example: tailscale up --exit-node=my-vps-hostname --exit-node-allow-lan-access
-tailscale up --exit-node=YOUR_VPS --exit-node-allow-lan-access
+
+tailscale up --exit-node=YOUR_VPS_NODE_NAME --exit-node-allow-lan-access
 
 # Or use route-based policies to exclude specific subnets
 ```
