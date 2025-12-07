@@ -8,18 +8,24 @@ The repository uses GitHub Actions to automatically deploy DNS filter changes to
 - `config/dns-allowlist.txt`
 - `config/dns-blocklist.txt`
 
+## VPS Configuration
+
+The VPS connection details are stored in `config/vps-config.txt` and committed to the repository:
+- VPS domain/hostname
+- VPS IP address
+- SSH port
+- SSH username
+- VPS provider information
+
+This allows you to manage VPS configuration through Git without exposing sensitive credentials.
+
 ## Required GitHub Secrets
 
-To enable automated deployments, you need to configure the following secrets in your GitHub repository:
+Only **one secret** is required for automated deployments:
 
 **Settings → Secrets and variables → Actions → New repository secret**
 
-### 1. VPS_HOST
-**Description:** The hostname or domain of your VPS  
-**Value:** `robin-easy.bnr.la` (or `103.100.37.13` if using IP)  
-**Usage:** Specifies where to deploy the DNS filters
-
-### 2. VPS_SSH_KEY
+### VPS_SSH_KEY
 **Description:** The private SSH key for authenticating to your VPS  
 **Value:** The **entire contents** of your private SSH key file (e.g., `~/.ssh/id_ed25519`)  
 **Format:**
@@ -37,24 +43,7 @@ b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
 - This should be the **private key** (not the public key)
 - The corresponding **public key** must be in `/home/deploy/.ssh/authorized_keys` on the VPS
 - The provision script automatically adds your public key during initial setup
-
-### 3. VPS_SSH_PORT (Optional)
-**Description:** The SSH port for your VPS  
-**Value:** `33003`  
-**Default:** `33003` (if not set)  
-**Usage:** Custom SSH port configured by the provision script for security
-
-### 4. VPS_SSH_USER (Optional)
-**Description:** The SSH user for deployments  
-**Value:** `deploy`  
-**Default:** `deploy` (if not set)  
-**Usage:** The non-root user created by the provision script
-
-### 5. VPS_ROOT_PASSWORD (For Initial Provisioning Only)
-**Description:** The root password provided by Binary Lane  
-**Value:** The password from Binary Lane's VPS details page  
-**Usage:** Used only for initial SSH access before the provision script runs  
-**Note:** After provisioning, all access uses SSH keys with the `deploy` user
+- This is the **only** secret needed - all other configuration is in `config/vps-config.txt`
 
 ## Initial VPS Provisioning Workflow
 
@@ -121,7 +110,7 @@ If this works, your GitHub Actions deployments will also work!
 
 ## Automated Deployments
 
-Once secrets are configured, deployments happen automatically:
+Once the `VPS_SSH_KEY` secret is configured, deployments happen automatically:
 
 1. **Edit DNS filters** on GitHub:
    - Go to `config/dns-allowlist.txt` or `config/dns-blocklist.txt`
@@ -181,9 +170,8 @@ cd headscale_vps
 **Problem:** Wrong host, port, or firewall blocking connection
 
 **Solutions:**
-1. Verify `VPS_HOST` secret is correct (robin-easy.bnr.la or 103.100.37.13)
-2. Verify `VPS_SSH_PORT` is 33003
-3. Check VPS firewall allows port 33003:
+1. Verify `config/vps-config.txt` has correct values (VPS_DOMAIN, SSH_PORT, SSH_USER)
+2. Check VPS firewall allows port 33003:
    ```bash
    ssh root@103.100.37.13
    sudo ufw status
@@ -237,9 +225,12 @@ The deployment workflow is defined in `.github/workflows/deploy-dns.yml`
 **Trigger:** Push to `main` branch with changes to DNS filter files  
 **Runner:** ubuntu-latest  
 **Permissions:** Read repository contents only  
+**Configuration:** Loaded from `config/vps-config.txt` (VPS_DOMAIN, SSH_PORT, SSH_USER)  
+**Secret:** Uses `VPS_SSH_KEY` for authentication  
 **Steps:**
 1. Checkout repository
-2. Setup SSH key from secret
-3. Run `scripts/deploy-dns.sh` with configuration
+2. Load VPS configuration from `config/vps-config.txt`
+3. Setup SSH key from `VPS_SSH_KEY` secret
+4. Run `scripts/deploy-dns.sh` with configuration
 
 You can manually trigger the workflow from the Actions tab using the "Run workflow" button.

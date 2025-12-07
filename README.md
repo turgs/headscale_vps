@@ -230,13 +230,11 @@ ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.co
 **Quick Setup:**
 
 1. Fork this repo
-2. Add GitHub Secrets (Settings → Secrets → Actions):
-   - `VPS_HOST` - Your domain (e.g., `robin-easy.bnr.la`)
-   - `VPS_SSH_KEY` - Your SSH private key
-   - `VPS_SSH_PORT` - SSH port (default: `33003`)
-   - `VPS_SSH_USER` - SSH user (default: `deploy`)
-3. Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` on GitHub
-4. Commit → Auto-deploys to VPS
+2. Update `config/vps-config.txt` with your VPS details (if different)
+3. Add GitHub Secret (Settings → Secrets → Actions):
+   - `VPS_SSH_KEY` - Your SSH private key (only secret needed!)
+4. Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` on GitHub
+5. Commit → Auto-deploys to VPS
 
 **Files:** One domain per line, `#` for comments
 ```txt

@@ -26,18 +26,19 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Deploy
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
-          SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
         run: |
+          # Load VPS configuration from config file
+          source config/vps-config.txt
+          
+          # Create temporary SSH key file
           KEY_FILE=$(mktemp)
           trap "rm -f $KEY_FILE" EXIT
           
           echo "${{ secrets.VPS_SSH_KEY }}" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
           
-          ARGS="--host=$VPS_HOST --ssh-key=$KEY_FILE --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
+          # Build arguments from config file
+          ARGS="--host=$VPS_DOMAIN --ssh-key=$KEY_FILE --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
           [[ "${{ inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
           
           ./scripts/deploy-dns.sh $ARGS
