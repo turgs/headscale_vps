@@ -1,0 +1,10 @@
+# Domains to NEVER block (one per line)
+# Format: domain.com
+#
+# YouTube and video streaming
+youtube.com
+googlevideo.com
+ytimg.com
+ggpht.com
+
+# Add more domains below

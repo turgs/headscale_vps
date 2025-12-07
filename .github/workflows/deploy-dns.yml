@@ -1,0 +1,43 @@
+name: Deploy DNS Filters
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'config/dns-allowlist.txt'
+      - 'config/dns-blocklist.txt'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no actual deployment)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy DNS Configuration
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
+          SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
+        run: |
+          KEY_FILE=$(mktemp)
+          trap "rm -f $KEY_FILE" EXIT
+          
+          echo "${{ secrets.VPS_SSH_KEY }}" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          
+          ARGS="--host=$VPS_HOST --ssh-key=$KEY_FILE --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
+          [[ "${{ inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
+          
+          ./scripts/deploy-dns.sh $ARGS

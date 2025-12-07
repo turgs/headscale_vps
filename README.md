@@ -31,10 +31,12 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 **DO THIS FIRST for security!**
 
 ```
-Visit: http://YOUR_SERVER_IP:3000
+Visit: http://vpn.bethanytim.com:3000 (or http://YOUR_DOMAIN:3000)
 Login: admin / changeme
 Settings → Change Password
 ```
+
+**Note:** Access via your domain name (not IP address) for security and convenience.
 
 ### 2. Create Headscale User & Pre-Auth Key
 
@@ -63,7 +65,7 @@ sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 1. Right-click Tailscale icon
 2. Click "Settings"
 3. Find "Login Server" or "Custom Control Server"
-4. Enter: `https://vpn.bethanytim.com` (or `http://YOUR_SERVER_IP:8080` if no domain)
+4. Enter: `https://vpn.bethanytim.com` (use your domain)
 5. Click "Save" then "Connect"
 6. Browser will open - follow authorization
 
@@ -87,9 +89,8 @@ sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 # Install Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Connect (use HTTPS if you configured a domain)
+# Connect (use your domain with HTTPS)
 sudo tailscale up --login-server https://vpn.bethanytim.com
-# Or with IP: sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
 
 # Use exit node
 sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
@@ -100,13 +101,67 @@ sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
 1. Install Tailscale app from Play Store/App Store
 2. Open app → Settings
 3. "Use alternate server" or "Login server"
-4. Enter: `https://vpn.bethanytim.com` (or `http://YOUR_SERVER_IP:8080` if no domain)
+4. Enter: `https://vpn.bethanytim.com` (use your domain)
 5. Connect
 6. Tap Settings → "Exit Node" → Select your VPS
 
 ---
 
-## 🛡️ What Gets Blocked (AdGuard Home)
+## 🛡️ DNS Filtering & Blocking
+
+### Three Operation Modes
+
+**1. Full VPN with Ad/Porn Blocking (Most Protected)**
+- Enable VPN exit node on device
+- All traffic routes through VPS
+- DNS filtering blocks ads, tracking, and adult content
+- Your IP appears as the VPS location
+
+**2. Clean Browsing Only (DNS Filtering without VPN)**
+- Connect to VPN but don't enable exit node
+- Only DNS queries go through VPS
+- Get ad/porn blocking without routing all traffic
+- Keep your regular IP address
+- **LAN devices remain accessible** (printers, NAS, etc. work normally)
+
+**3. VPN Off (No Filtering)**
+- Disconnect from VPN entirely
+- Normal internet access
+- No ad blocking or filtering
+
+### Managing DNS Filters (GitOps Workflow)
+
+Edit DNS filters via GitHub - changes deploy automatically:
+
+**1. Edit filter files on GitHub:**
+- `config/dns-allowlist.txt` - Domains to never block
+- `config/dns-blocklist.txt` - Additional domains to block
+
+**2. Commit changes to main branch**
+
+**3. GitHub Actions automatically deploys to your VPS**
+
+**Example - Allow a blocked site:**
+```txt
+# In config/dns-allowlist.txt, add:
+facebook.com
+instagram.com
+```
+
+**Example - Block additional sites:**
+```txt
+# In config/dns-blocklist.txt, add:
+gambling-site.com
+distracting-game.com
+```
+
+**Benefits:**
+- ✅ Edit via GitHub web UI (no SSH needed)
+- ✅ Track all changes with git history
+- ✅ Automatic deployment
+- ✅ Rollback capability if something breaks
+
+### Default Blocking Behavior
 
 **Automatically blocked:**
 - ✅ Ads on websites and apps
@@ -114,18 +169,29 @@ sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
 - ✅ Adult/porn websites
 - ✅ Known malware domains
 
-**NOT blocked:**
+**NOT blocked by default:**
 - ❌ YouTube (works normally)
-- ❌ Social media (unless you block it)
+- ❌ Social media (unless you add to blocklist)
 - ❌ Legitimate sites
 
-**To allow a blocked site:**
+### Manual DNS Filter Management (Alternative)
+
+If you prefer SSH instead of GitOps:
+
 ```bash
-ssh deploy@YOUR_SERVER_IP -p 33003
-# Edit /opt/adguardhome/conf/AdGuardHome.yaml
-# Add to user_rules: @@||example.com^$important
+ssh deploy@vpn.bethanytim.com -p 33003
+
+# Edit AdGuard Home config
+sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
+
+# Add to user_rules section:
+# Allow a domain: @@||example.com^$important
+# Block a domain: ||badsite.com^
+
 sudo systemctl restart adguardhome
 ```
+
+**Note:** GitOps method is recommended for easier management and change tracking.
 
 ---
 
@@ -159,6 +225,27 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 
 ---
 
+## 🤖 GitOps DNS Management
+
+**Quick Setup:**
+
+1. Fork this repo
+2. Add GitHub Secrets (Settings → Secrets → Actions):
+   - `VPS_HOST` - Your domain (e.g., `vpn.example.com`)
+   - `VPS_SSH_KEY` - Your SSH private key
+3. Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` on GitHub
+4. Commit → Auto-deploys to VPS
+
+**Files:** One domain per line, `#` for comments
+```txt
+youtube.com
+facebook.com  # comment
+```
+
+**Manual deploy:** `./scripts/deploy-dns.sh --host=vpn.example.com`
+
+---
+
 ## ⚠️ Important Notes
 
 **Security:**
@@ -178,7 +265,7 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 **For Family Use:**
 - Ad/porn blocking enabled by default
 - Can't be easily disabled by users
-- Monitor at: `http://YOUR_SERVER_IP:3000`
+- Monitor at: `http://vpn.bethanytim.com:3000` (use your domain)
 
 ---
 
@@ -243,11 +330,11 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 
 ## 📚 Additional Documentation
 
-- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Complete admin reference (user management, ACLs, backups, troubleshooting)
-- **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling and ACL guide
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
-- **Headscale docs:** https://headscale.net/
-- **Tailscale docs:** https://tailscale.com/kb/
+- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Admin reference (users, ACLs, backups)
+- **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling guide
+- **Headscale:** https://headscale.net/
+- **Tailscale:** https://tailscale.com/kb/
 
 ---
 
@@ -257,13 +344,20 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 ├── provision_vps.sh          # Main setup script (run this)
 ├── setup_exit_node.sh        # Post-install exit node helper
 ├── test_setup.sh             # Remote VPS verification
-├── ADMIN_GUIDE.md            # Complete admin reference
-├── SPLIT_TUNNELING.md        # Split tunneling & ACL guide
 ├── QUICKSTART.md             # Quick setup guide
+├── ADMIN_GUIDE.md            # Admin reference
+├── SPLIT_TUNNELING.md        # Split tunneling guide
+├── .github/
+│   └── workflows/
+│       └── deploy-dns.yml    # GitHub Actions workflow for DNS deployment
+├── scripts/
+│   └── deploy-dns.sh         # DNS deployment script
 └── config/
     ├── deploy.yml            # Kamal config (for updates)
     ├── headscale-config.yaml # Headscale configuration template
-    └── acl.yaml              # ACL policy template
+    ├── acl.yaml              # ACL policy template
+    ├── dns-allowlist.txt     # DNS domains to never block (GitOps)
+    └── dns-blocklist.txt     # Additional DNS domains to block (GitOps)
 ```
 
 ---

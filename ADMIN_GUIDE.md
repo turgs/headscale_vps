@@ -221,41 +221,29 @@ sudo systemctl start caddy
 ### Access AdGuard Home UI
 
 ```
-http://YOUR_SERVER_IP:3000
+http://vpn.bethanytim.com:3000  (use your domain)
 ```
 
 Login: `admin` / `changeme` (change immediately!)
 
-### Allow a Blocked Domain
+### Managing DNS Filters
 
-**Option 1: Web UI**
-1. Visit `http://YOUR_SERVER_IP:3000`
-2. Filters → Custom filtering rules
-3. Add: `@@||example.com^$important`
-4. Click Save
+**Method 1: GitOps (Recommended)**
 
-**Option 2: SSH**
+Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` in GitHub → commit → auto-deploys.
+
+**Method 2: AdGuard Web UI**
+
+Visit `http://vpn.bethanytim.com:3000` → Filters → Custom filtering rules
+- Allow: `@@||example.com^$important`
+- Block: `||badsite.com^`
+
+**Method 3: SSH**
+
 ```bash
 ssh deploy@vpn.bethanytim.com -p 33003
 sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
-
-# Add to user_rules section:
-user_rules:
-  - '@@||example.com^$important'
-
-sudo systemctl restart adguardhome
-```
-
-### Block Additional Domains
-
-```bash
-sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
-
-# Add to user_rules section:
-user_rules:
-  - '||ads.example.com^'
-  - '||tracker.example.com^'
-
+# Edit user_rules section
 sudo systemctl restart adguardhome
 ```
 

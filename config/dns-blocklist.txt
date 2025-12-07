@@ -1,0 +1,4 @@
+# Additional domains to BLOCK (one per line)
+# Format: domain.com
+#
+# Add custom domains below
