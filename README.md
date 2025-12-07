@@ -63,7 +63,7 @@ sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 1. Right-click Tailscale icon
 2. Click "Settings"
 3. Find "Login Server" or "Custom Control Server"
-4. Enter: `http://YOUR_SERVER_IP:8080`
+4. Enter: `https://vpn.bethanytim.com` (or `http://YOUR_SERVER_IP:8080` if no domain)
 5. Click "Save" then "Connect"
 6. Browser will open - follow authorization
 
@@ -87,8 +87,9 @@ sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 # Install Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Connect
-sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
+# Connect (use HTTPS if you configured a domain)
+sudo tailscale up --login-server https://vpn.bethanytim.com
+# Or with IP: sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
 
 # Use exit node
 sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
@@ -99,7 +100,7 @@ sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
 1. Install Tailscale app from Play Store/App Store
 2. Open app → Settings
 3. "Use alternate server" or "Login server"
-4. Enter: `http://YOUR_SERVER_IP:8080`
+4. Enter: `https://vpn.bethanytim.com` (or `http://YOUR_SERVER_IP:8080` if no domain)
 5. Connect
 6. Tap Settings → "Exit Node" → Select your VPS
 
@@ -138,9 +139,23 @@ provision_vps.sh --help
 Options:
   --ssh-key=KEY          Your SSH public key
   --ssh-port=PORT        SSH port (default: 33003)
-  --domain=DOMAIN        Domain for Headscale (optional)
+  --domain=DOMAIN        Domain for Headscale (enables HTTPS with Caddy)
   --swap-size=SIZE       Swap size (default: 2G)
 ```
+
+### Example with Domain (Recommended)
+
+Using a domain enables automatic HTTPS with Let's Encrypt:
+
+```bash
+ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
+  --domain="vpn.bethanytim.com"
+```
+
+**Important**: Before running with a domain, make sure:
+1. You own the domain
+2. DNS A record points to your VPS IP address
+3. Port 80 and 443 are accessible (for Let's Encrypt verification)
 
 ---
 
@@ -194,9 +209,43 @@ sudo headscale routes enable -r <route-id>
 
 ---
 
+## 🔀 Split Tunneling & Access Control
+
+Want to route only specific traffic through your VPN? Or control which family members can access which devices?
+
+See **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** for:
+- Per-device split tunneling (easiest for families)
+- DNS-only mode (ad blocking without full VPN)
+- ACL configuration (user access control)
+- Simple instructions for non-technical users
+
+**Quick ACL Setup:**
+```bash
+# Edit ACL policy
+sudo nano /etc/headscale/acl.yaml
+
+# Apply changes
+sudo systemctl reload headscale
+```
+
+## 🔒 HTTPS Setup
+
+When you provide a domain using `--domain=vpn.bethanytim.com`, the script automatically:
+- Installs Caddy reverse proxy
+- Configures automatic HTTPS with Let's Encrypt
+- Sets up security headers
+- Enables HTTP/2
+
+**Prerequisites:**
+- Own a domain name
+- DNS A record pointing to your VPS
+- Ports 80 and 443 open
+
 ## 📚 Additional Documentation
 
-- **QUICKSTART.md** - Step-by-step setup guide
+- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Complete admin reference (user management, ACLs, backups, troubleshooting)
+- **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling and ACL guide
+- **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
 - **Headscale docs:** https://headscale.net/
 - **Tailscale docs:** https://tailscale.com/kb/
 
@@ -208,9 +257,13 @@ sudo headscale routes enable -r <route-id>
 ├── provision_vps.sh          # Main setup script (run this)
 ├── setup_exit_node.sh        # Post-install exit node helper
 ├── test_setup.sh             # Remote VPS verification
+├── ADMIN_GUIDE.md            # Complete admin reference
+├── SPLIT_TUNNELING.md        # Split tunneling & ACL guide
+├── QUICKSTART.md             # Quick setup guide
 └── config/
     ├── deploy.yml            # Kamal config (for updates)
-    └── headscale-config.yaml # Headscale template
+    ├── headscale-config.yaml # Headscale configuration template
+    └── acl.yaml              # ACL policy template
 ```
 
 ---

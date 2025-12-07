@@ -689,21 +689,69 @@ SYSTEMD_EOF
         # Create config directory
         mkdir -p /etc/headscale
         
-        # Determine server URL
+        # Determine server URL based on domain
         if [[ -n "$HEADSCALE_DOMAIN" ]]; then
-            SERVER_URL="http://${HEADSCALE_DOMAIN}:${HEADSCALE_PORT}"
+            SERVER_URL="https://${HEADSCALE_DOMAIN}"
         else
             # Use server's public IP
             SERVER_IP=$(curl -s ifconfig.me || echo "0.0.0.0")
             SERVER_URL="http://${SERVER_IP}:${HEADSCALE_PORT}"
         fi
         
+        # Create ACL policy file
+        cat > /etc/headscale/acl.yaml <<'ACLEOF'
+# Headscale ACL Policy
+# This file controls access between nodes in your network
+# Edit this file and run 'sudo systemctl reload headscale' to apply changes
+
+# ACLs define which users can access which resources
+acls:
+  # Allow all users to access their own devices
+  - action: accept
+    src:
+      - "*"
+    dst:
+      - "*:*"
+
+# Groups can be defined to manage users together
+groups:
+  group:admins:
+    - admin
+
+# TagOwners define who can apply tags to nodes
+tagOwners:
+  tag:exit-node:
+    - group:admins
+
+# SSH access control (optional)
+ssh:
+  - action: accept
+    src:
+      - "*"
+    dst:
+      - "*"
+    users:
+      - autogroup:nonroot
+      - root
+
+# Host definitions for easy reference
+hosts: {}
+
+# Auto-approvers for exit nodes
+autoApprovers:
+  routes:
+    0.0.0.0/0:
+      - tag:exit-node
+    "::/0":
+      - tag:exit-node
+ACLEOF
+        
         # Create config file
         cat > /etc/headscale/config.yaml <<EOF
 server_url: ${SERVER_URL}
-listen_addr: 0.0.0.0:${HEADSCALE_PORT}
+listen_addr: 127.0.0.1:${HEADSCALE_PORT}
 metrics_listen_addr: 127.0.0.1:9090
-grpc_listen_addr: 0.0.0.0:50443
+grpc_listen_addr: 127.0.0.1:50443
 grpc_allow_insecure: false
 
 private_key_path: /var/lib/headscale/private.key
@@ -730,6 +778,10 @@ database:
   sqlite:
     path: /var/lib/headscale/db.sqlite
 
+# ACL policy file for access control
+policy:
+  path: /etc/headscale/acl.yaml
+
 acme_url: https://acme-v02.api.letsencrypt.org/directory
 acme_email: ""
 tls_letsencrypt_hostname: ""
@@ -751,7 +803,7 @@ dns_config:
     - 127.0.0.1
   domains: []
   magic_dns: true
-  base_domain: example.com
+  base_domain: headscale.net
 
 unix_socket: /var/run/headscale/headscale.sock
 unix_socket_permission: "0770"
@@ -778,6 +830,97 @@ EOF
         mark_complete "headscale"
     else
         print_info "Skipping Headscale (already done)"
+    fi
+    
+    # Install Caddy (reverse proxy for HTTPS)
+    if ! is_complete "caddy"; then
+        print_header "🔒 Installing Caddy (HTTPS Reverse Proxy)"
+        
+        if ! command -v caddy &> /dev/null; then
+            # Add Caddy's official repository
+            print_info "Adding Caddy repository..."
+            apt-get install -y -qq debian-keyring debian-archive-keyring apt-transport-https
+            curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | \
+                gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+            curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | \
+                tee /etc/apt/sources.list.d/caddy-stable.list
+            
+            apt-get update -qq
+            apt-get install -y -qq caddy
+            
+            print_success "Caddy installed"
+        else
+            print_info "Caddy already installed"
+        fi
+        
+        # Configure Caddy if domain is provided
+        if [[ -n "$HEADSCALE_DOMAIN" ]]; then
+            print_info "Configuring Caddy for HTTPS with domain: $HEADSCALE_DOMAIN"
+            
+            # Create Caddyfile
+            cat > /etc/caddy/Caddyfile <<CADDYEOF
+# Caddy configuration for Headscale
+# Automatic HTTPS with Let's Encrypt
+
+${HEADSCALE_DOMAIN} {
+    # Reverse proxy to Headscale
+    reverse_proxy 127.0.0.1:${HEADSCALE_PORT} {
+        # Preserve headers for Headscale
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Enable compression
+    encode gzip
+    
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prevent clickjacking
+        X-Frame-Options "DENY"
+        # Prevent content-type sniffing
+        X-Content-Type-Options "nosniff"
+        # Remove server header
+        -Server
+    }
+    
+    # Access logging
+    log {
+        output file /var/log/caddy/headscale-access.log
+        format json
+    }
+}
+CADDYEOF
+            
+            # Create log directory
+            mkdir -p /var/log/caddy
+            chown caddy:caddy /var/log/caddy
+            
+            # Reload Caddy
+            systemctl enable caddy
+            systemctl restart caddy
+            
+            # Wait for Caddy to start
+            sleep 3
+            
+            if systemctl is-active --quiet caddy; then
+                print_success "Caddy configured with HTTPS for $HEADSCALE_DOMAIN"
+                print_info "Caddy will automatically obtain Let's Encrypt certificate"
+                print_warning "Ensure DNS A record for $HEADSCALE_DOMAIN points to this server!"
+            else
+                print_warning "Caddy service failed to start"
+                journalctl -u caddy -n 20
+            fi
+        else
+            print_info "No domain provided, skipping Caddy configuration"
+            print_info "Headscale will use HTTP on port $HEADSCALE_PORT"
+        fi
+        
+        mark_complete "caddy"
+    else
+        print_info "Skipping Caddy (already done)"
     fi
     
     # Install Tailscale (for exit node)
@@ -919,12 +1062,17 @@ EOF
         # Allow SSH
         ufw allow "$SSH_PORT"/tcp comment 'SSH'
         
-        # Allow HTTP/HTTPS
+        # Allow HTTP/HTTPS (for Caddy/Let's Encrypt)
         ufw allow 80/tcp comment 'HTTP'
         ufw allow 443/tcp comment 'HTTPS'
         
-        # Allow Headscale
-        ufw allow "$HEADSCALE_PORT"/tcp comment 'Headscale'
+        # Allow Headscale port only if not using domain (no Caddy proxy)
+        if [[ -z "$HEADSCALE_DOMAIN" ]]; then
+            ufw allow "$HEADSCALE_PORT"/tcp comment 'Headscale'
+            print_info "Headscale port $HEADSCALE_PORT opened (direct access)"
+        else
+            print_info "Headscale port $HEADSCALE_PORT not opened (using Caddy proxy)"
+        fi
         
         # Allow AdGuard Home Web UI
         ufw allow 3000/tcp comment 'AdGuard Home UI'

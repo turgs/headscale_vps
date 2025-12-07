@@ -23,23 +23,31 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
   --ssh-key="$(cat ~/.ssh/id_ed25519.pub)"
 ```
 
-### Option C: With Domain
+### Option C: With Domain (Recommended for HTTPS)
 
 ```bash
 ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
   --ssh-key="$(cat ~/.ssh/id_ed25519.pub)" \
-  --domain="headscale.yourdomain.com"
+  --domain="vpn.bethanytim.com"
 ```
+
+**Before running with a domain:**
+1. Ensure DNS A record for `vpn.bethanytim.com` points to your VPS IP
+2. Wait a few minutes for DNS propagation
+3. Caddy will automatically obtain a Let's Encrypt SSL certificate
+4. Your Headscale server will be accessible via HTTPS
 
 **What it does:**
 - Installs Headscale server
 - Installs Tailscale client
+- **Installs Caddy** (HTTPS reverse proxy, when domain provided)
 - **Installs AdGuard Home** (ad/tracking/porn blocking)
 - Configures firewall (UFW)
 - Sets up fail2ban
 - Enables IP forwarding
 - Creates deploy user
 - Hardens SSH (port 33003)
+- **Creates ACL policy file** for user access control
 
 **Time:** ~5-10 minutes + reboot
 
@@ -86,8 +94,9 @@ This will:
 # Install Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Connect to your Headscale server
-sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
+# Connect to your Headscale server (use HTTPS if you set up a domain)
+sudo tailscale up --login-server https://vpn.bethanytim.com
+# Or with IP: sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
 ```
 
 #### Windows (Step-by-Step):
@@ -97,7 +106,7 @@ sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
 3. After installation, find the Tailscale icon in your system tray (near clock)
 4. Right-click the icon → "Settings"
 5. Find "Login Server" or "Custom Control Server"
-6. Enter: `http://YOUR_SERVER_IP:8080` (use your actual VPS IP)
+6. Enter: `https://vpn.bethanytim.com` (or `http://YOUR_SERVER_IP:8080` with your actual VPS IP)
 7. Click "Save" then "Connect"
 8. After connected, right-click icon again → "Exit Node" → Select your VPS
 9. You're now routing through your VPS!
@@ -222,9 +231,33 @@ Or use the web UI at `http://YOUR_SERVER_IP:3000` → Filters → Custom filteri
 
 - **Add more devices**: Use the same `tailscale up` command on other devices
 - **Create more users**: `sudo headscale users create username`
-- **Configure ACLs**: Edit `/etc/headscale/config.yaml`
-- **Setup HTTPS**: Add a reverse proxy (Caddy/Nginx)
+- **Configure ACLs**: Edit `/etc/headscale/acl.yaml` (see `config/acl.yaml` for template)
+- **Setup split tunneling**: See [SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)
 - **Monitor DNS filtering**: Visit `http://YOUR_SERVER_IP:3000`
+
+## Managing Access Control (ACLs)
+
+Control which users can access which devices:
+
+```bash
+# SSH into VPS
+ssh deploy@YOUR_SERVER_IP -p 33003
+
+# Edit ACL policy
+sudo nano /etc/headscale/acl.yaml
+
+# Example: Add user to family group
+# groups:
+#   group:family:
+#     - mom
+#     - dad
+#     - newuser
+
+# Apply changes
+sudo systemctl reload headscale
+```
+
+See [SPLIT_TUNNELING.md](SPLIT_TUNNELING.md) for detailed ACL examples.
 
 ---
 
