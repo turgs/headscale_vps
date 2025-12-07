@@ -87,7 +87,7 @@ Your device connects to the VPN but doesn't use it as exit node. It only uses th
 1. Connect to VPN **without** enabling exit node:
    ```bash
    # Don't include --advertise-exit-node or --exit-node flags
-   sudo tailscale up --login-server=https://vpn.bethanytim.com
+   sudo tailscale up --login-server=https://robin-easy.bnr.la
    ```
 
 2. Your device will automatically use the VPN's DNS (AdGuard Home) for:
@@ -175,7 +175,7 @@ ACLs control which users can access which devices in your VPN network.
 
 1. **SSH into your VPS:**
    ```bash
-   ssh deploy@vpn.bethanytim.com -p 33003
+   ssh deploy@robin-easy.bnr.la -p 33003
    ```
 
 2. **Edit the ACL file:**
