@@ -404,6 +404,7 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 - **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Complete admin reference (user management, ACLs, backups, troubleshooting)
 - **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling and ACL guide
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
+- **[GITOPS_DNS.md](GITOPS_DNS.md)** - GitOps DNS filter management guide (recommended)
 - **Headscale docs:** https://headscale.net/
 - **Tailscale docs:** https://tailscale.com/kb/
 
@@ -418,6 +419,7 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 ├── ADMIN_GUIDE.md            # Complete admin reference
 ├── SPLIT_TUNNELING.md        # Split tunneling & ACL guide
 ├── QUICKSTART.md             # Quick setup guide
+├── GITOPS_DNS.md             # GitOps DNS filter management guide
 ├── .github/
 │   └── workflows/
 │       └── deploy-dns.yml    # GitHub Actions workflow for DNS deployment

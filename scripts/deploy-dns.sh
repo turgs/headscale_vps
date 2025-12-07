@@ -266,23 +266,24 @@ deploy_config() {
     # Create temporary script to update YAML on VPS
     local update_script=$(cat << 'SCRIPT_EOF'
 #!/bin/bash
-set -e
+set -euo pipefail
 
 CONFIG_FILE="$1"
 TEMP_FILE="${CONFIG_FILE}.tmp"
 
 # Read new user_rules from stdin
-echo "Reading new user_rules..."
 NEW_RULES=$(cat)
 
 # Use Python to safely update YAML (preserving structure)
-python3 << 'PYTHON_EOF'
+python3 - "$CONFIG_FILE" "$TEMP_FILE" << 'PYTHON_EOF'
 import sys
 import re
 
 config_file = sys.argv[1]
 temp_file = sys.argv[2]
-new_rules = sys.argv[3]
+
+# Read new rules from stdin
+new_rules = sys.stdin.read().strip()
 
 # Read the current config
 with open(config_file, 'r') as f:
@@ -290,12 +291,12 @@ with open(config_file, 'r') as f:
 
 # Find and replace the user_rules section
 # Pattern matches: user_rules:\n  - 'rule1'\n  - 'rule2'... until next top-level key
-pattern = r'(user_rules:).*?(?=\n[a-z_]+:|\Z)'
+pattern = r'(user_rules:)(?:\s*-\s*[^\n]+\n)*'
 
-replacement = 'user_rules:\n' + new_rules
+replacement = 'user_rules:\n' + new_rules + '\n'
 
 # Replace the user_rules section
-new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+new_content = re.sub(pattern, replacement, content, flags=re.MULTILINE)
 
 # Write to temp file
 with open(temp_file, 'w') as f:
@@ -303,7 +304,6 @@ with open(temp_file, 'w') as f:
 
 print("Configuration updated successfully")
 PYTHON_EOF
-python3 -c "$(cat)" "$CONFIG_FILE" "$TEMP_FILE" "$NEW_RULES"
 
 # Move temp file to config file
 sudo mv "$TEMP_FILE" "$CONFIG_FILE"
@@ -314,9 +314,9 @@ echo "Config file updated"
 SCRIPT_EOF
 )
     
-    # Execute update on VPS
+    # Execute update on VPS by piping both the script and the user_rules
     info "Updating AdGuard Home configuration..."
-    if $ssh_cmd "bash -s -- $ADGUARD_CONFIG_PATH" <<< "$update_script" <<< "$user_rules"; then
+    if echo "$user_rules" | $ssh_cmd "bash -s -- $ADGUARD_CONFIG_PATH" <<< "$update_script"; then
         success "Configuration updated on VPS"
     else
         error "Failed to update configuration"
