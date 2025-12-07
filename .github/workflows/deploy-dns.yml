@@ -19,6 +19,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy DNS Configuration
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout repository
