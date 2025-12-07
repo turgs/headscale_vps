@@ -457,7 +457,7 @@ headscale version
    # Remove public access
    sudo ufw delete allow 3000/tcp
    
-   # Allow only from Tailscale network
+   # Allow only from VPN network (100.64.0.0/10 is the Tailscale/Headscale network range)
    sudo ufw allow from 100.64.0.0/10 to any port 3000 proto tcp comment 'AdGuard Home UI - VPN only'
    
    # Reload firewall

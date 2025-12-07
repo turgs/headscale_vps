@@ -143,7 +143,7 @@ ssh deploy@robin-easy.bnr.la -p 33003
 # Remove public access to AdGuard Home UI
 sudo ufw delete allow 3000/tcp
 
-# Allow access only from Tailscale network (100.64.0.0/10)
+# Allow access only from VPN network (100.64.0.0/10 is the Tailscale/Headscale network range)
 sudo ufw allow from 100.64.0.0/10 to any port 3000 proto tcp comment 'AdGuard Home UI - VPN only'
 
 # Reload firewall
