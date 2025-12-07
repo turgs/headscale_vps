@@ -191,6 +191,13 @@ curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/test_setup
 
 Your VPS now blocks ads, tracking, and adult content automatically!
 
+**What is AdGuard Home?**
+AdGuard Home is your DNS-based content filter that automatically blocks unwanted content for all VPN users. It provides:
+- Ad blocking across all websites and apps
+- Privacy protection (blocks tracking/analytics)
+- Parental controls (blocks adult content)
+- Malware protection (blocks known malicious domains)
+
 ### Change AdGuard Home Password
 
 **IMPORTANT:** Change the default password immediately:
@@ -198,6 +205,11 @@ Your VPS now blocks ads, tracking, and adult content automatically!
 1. Visit `http://robin-easy.bnr.la:3000` (or `http://103.100.37.13:3000`)
 2. Login with `admin` / `changeme`
 3. Go to Settings → Change Password
+
+**Security Note:** 
+- AdGuard Home uses HTTP (not HTTPS) on port 3000. This port is accessible from the internet by default.
+- **Change the password immediately** to secure your DNS filtering settings.
+- For enhanced security, you can restrict port 3000 to VPN-only access (see ADMIN_GUIDE.md for instructions).
 
 ### Allow/Block Specific Domains
 
