@@ -228,68 +228,22 @@ Login: `admin` / `changeme` (change immediately!)
 
 ### Managing DNS Filters
 
-**Recommended: GitOps Method (via GitHub)**
+**Method 1: GitOps (Recommended)**
 
-The easiest way to manage DNS filters is through the repository:
+Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` in GitHub → commit → auto-deploys.
 
-1. Edit `config/dns-allowlist.txt` to allow blocked domains
-2. Edit `config/dns-blocklist.txt` to block additional domains
-3. Commit and push to main branch
-4. GitHub Actions automatically deploys to your VPS
+**Method 2: AdGuard Web UI**
 
-**Benefits:**
-- No SSH needed
-- Change tracking with git history
-- Automatic deployment and validation
-- Easy rollback if needed
+Visit `http://vpn.bethanytim.com:3000` → Filters → Custom filtering rules
+- Allow: `@@||example.com^$important`
+- Block: `||badsite.com^`
 
-See the main README.md for full GitOps setup instructions.
+**Method 3: SSH**
 
-### Allow a Blocked Domain
-
-**Option 1: GitOps (Recommended)**
-```bash
-# Edit config/dns-allowlist.txt in GitHub and add:
-facebook.com
-instagram.com
-```
-
-**Option 2: AdGuard Home Web UI**
-1. Visit `http://vpn.bethanytim.com:3000`
-2. Filters → Custom filtering rules
-3. Add: `@@||example.com^$important`
-4. Click Save
-
-**Option 3: Direct SSH Edit**
 ```bash
 ssh deploy@vpn.bethanytim.com -p 33003
 sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
-
-# Add to user_rules section:
-user_rules:
-  - '@@||example.com^$important'
-
-sudo systemctl restart adguardhome
-```
-
-### Block Additional Domains
-
-**Option 1: GitOps (Recommended)**
-```bash
-# Edit config/dns-blocklist.txt in GitHub and add:
-gambling-site.com
-distracting-game.com
-```
-
-**Option 2: Direct SSH Edit**
-```bash
-sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
-
-# Add to user_rules section:
-user_rules:
-  - '||ads.example.com^'
-  - '||tracker.example.com^'
-
+# Edit user_rules section
 sudo systemctl restart adguardhome
 ```
 

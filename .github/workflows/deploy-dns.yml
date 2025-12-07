@@ -23,87 +23,21 @@ jobs:
       contents: read
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-      - name: Setup SSH key
+      - name: Deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
+          SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
-          chmod 600 ~/.ssh/vps_key
-          # Disable strict host key checking for automated deployment
-          echo "Host *" > ~/.ssh/config
-          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
-          echo "  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
-          chmod 600 ~/.ssh/config
-      
-      - name: Validate DNS configuration files
-        run: |
-          echo "Validating DNS configuration files..."
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/key
+          chmod 600 ~/.ssh/key
           
-          # Check if files exist
-          if [[ ! -f config/dns-allowlist.txt ]]; then
-            echo "ERROR: config/dns-allowlist.txt not found"
-            exit 1
-          fi
+          ARGS="--host=$VPS_HOST --ssh-key=~/.ssh/key --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
+          [[ "${{ inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
           
-          if [[ ! -f config/dns-blocklist.txt ]]; then
-            echo "ERROR: config/dns-blocklist.txt not found"
-            exit 1
-          fi
+          ./scripts/deploy-dns.sh $ARGS
           
-          # Count domains (excluding comments and empty lines)
-          allowlist_count=$(grep -v '^#' config/dns-allowlist.txt | grep -v '^[[:space:]]*$' | wc -l || echo "0")
-          blocklist_count=$(grep -v '^#' config/dns-blocklist.txt | grep -v '^[[:space:]]*$' | wc -l || echo "0")
-          
-          echo "Allowlist domains: $allowlist_count"
-          echo "Blocklist domains: $blocklist_count"
-          
-          # Define domain validation regex (shared for both files)
-          DOMAIN_REGEX='^(#.*|[[:space:]]*|[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*.*)$'
-          
-          # Validate domain format in allowlist
-          if grep -Ev "$DOMAIN_REGEX" config/dns-allowlist.txt | grep -v '^[[:space:]]*$'; then
-            echo "ERROR: Invalid domain format in allowlist"
-            exit 1
-          fi
-          
-          # Validate domain format in blocklist
-          if grep -Ev "$DOMAIN_REGEX" config/dns-blocklist.txt | grep -v '^[[:space:]]*$'; then
-            echo "ERROR: Invalid domain format in blocklist"
-            exit 1
-          fi
-          
-          echo "✓ DNS configuration files are valid"
-      
-      - name: Deploy DNS filters
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          SSH_KEY: ~/.ssh/vps_key
-          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
-          SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
-        run: |
-          # Run deployment script
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
-            echo "Running in DRY RUN mode..."
-            ./scripts/deploy-dns.sh --host="$VPS_HOST" --ssh-key="$SSH_KEY" --ssh-port="$SSH_PORT" --ssh-user="$SSH_USER" --dry-run
-          else
-            ./scripts/deploy-dns.sh --host="$VPS_HOST" --ssh-key="$SSH_KEY" --ssh-port="$SSH_PORT" --ssh-user="$SSH_USER"
-          fi
-      
-      - name: Verify deployment
-        if: ${{ inputs.dry_run != true }}
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
-          SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
-        run: |
-          echo "Verifying AdGuard Home is running..."
-          ssh -i ~/.ssh/vps_key -p "$SSH_PORT" "$SSH_USER@$VPS_HOST" \
-            "sudo systemctl is-active --quiet adguardhome && echo '✓ AdGuard Home is running' || (echo 'ERROR: AdGuard Home is not running' && exit 1)"
-      
-      - name: Cleanup SSH key
-        if: always()
-        run: |
-          rm -f ~/.ssh/vps_key
-          rm -f ~/.ssh/config
+          rm -f ~/.ssh/key

@@ -1,11 +1,4 @@
-# DNS Blocklist - Additional domains to block
-# Add one domain per line. Comments start with #
-# These domains will be blocked in addition to the default blocklists
+# Additional domains to BLOCK (one per line)
+# Format: domain.com
 #
-# Format: domain.com (without protocol or path)
-# Example entries:
-
-# Add custom domains to block here
-# gambling-site.com
-# social-media-site.com
-# distracting-game.com
+# Add custom domains below

@@ -225,95 +225,24 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 
 ---
 
-## 🤖 GitOps DNS Filter Management (Advanced)
+## 🤖 GitOps DNS Management
 
-Manage your DNS filters using Git and GitHub Actions for automated deployment.
+**Quick Setup:**
 
-### Setup Requirements
+1. Fork this repo
+2. Add GitHub Secrets (Settings → Secrets → Actions):
+   - `VPS_HOST` - Your domain (e.g., `vpn.example.com`)
+   - `VPS_SSH_KEY` - Your SSH private key
+3. Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` on GitHub
+4. Commit → Auto-deploys to VPS
 
-1. **Fork or clone this repository**
-2. **Configure GitHub Secrets:**
-   - Go to your repository → Settings → Secrets and variables → Actions
-   - Add the following secrets:
-     - `VPS_HOST`: Your VPS domain or IP (e.g., `vpn.bethanytim.com`)
-     - `VPS_SSH_KEY`: Your SSH private key for the deploy user
-     - `VPS_SSH_PORT`: (Optional) SSH port (default: 33003)
-     - `VPS_SSH_USER`: (Optional) SSH user (default: deploy)
-
-### How It Works
-
-1. **Edit DNS filter files** in the GitHub web UI or locally:
-   - `config/dns-allowlist.txt` - Domains to never block
-   - `config/dns-blocklist.txt` - Additional domains to block
-
-2. **Commit and push** to the main branch
-
-3. **GitHub Actions automatically**:
-   - Validates the DNS configuration
-   - Deploys to your VPS via SSH
-   - Updates AdGuard Home configuration
-   - Reloads the service
-   - Rolls back on failure
-
-### File Format
-
-One domain per line, comments with `#`:
-
+**Files:** One domain per line, `#` for comments
 ```txt
-# This is a comment
-example.com
-subdomain.example.com
-
-# Inline comments are supported too
-another-domain.com  # This domain is important
+youtube.com
+facebook.com  # comment
 ```
 
-### Testing Changes
-
-You can test deployment without making changes:
-
-1. Go to Actions tab in your repository
-2. Click "Deploy DNS Filters" workflow
-3. Click "Run workflow"
-4. Check "Run in dry-run mode"
-5. Review the output to see what would be deployed
-
-### Viewing Deployment History
-
-- Go to Actions tab to see all deployments
-- Each deployment shows:
-  - Which files changed
-  - How many domains were added/removed
-  - Deployment status (success/failure)
-  - Complete deployment logs
-
-### Rollback
-
-If a deployment causes issues:
-
-1. Go to the repository commits
-2. Find the last working commit
-3. Revert the problematic commit
-4. Push - this triggers automatic redeployment
-
-Or manually rollback via SSH:
-```bash
-ssh deploy@vpn.bethanytim.com -p 33003
-sudo cp /opt/adguardhome/conf/AdGuardHome.yaml.backup.* /opt/adguardhome/conf/AdGuardHome.yaml
-sudo systemctl restart adguardhome
-```
-
-### Manual Deployment
-
-You can also run the deployment script locally:
-
-```bash
-# From repository root
-./scripts/deploy-dns.sh --host=vpn.bethanytim.com --ssh-key=~/.ssh/id_rsa
-
-# Dry run (test without changes)
-./scripts/deploy-dns.sh --host=vpn.bethanytim.com --dry-run
-```
+**Manual deploy:** `./scripts/deploy-dns.sh --host=vpn.example.com`
 
 ---
 
@@ -401,12 +330,11 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 
 ## 📚 Additional Documentation
 
-- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Complete admin reference (user management, ACLs, backups, troubleshooting)
-- **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling and ACL guide
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
-- **[GITOPS_DNS.md](GITOPS_DNS.md)** - GitOps DNS filter management guide (recommended)
-- **Headscale docs:** https://headscale.net/
-- **Tailscale docs:** https://tailscale.com/kb/
+- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Admin reference (users, ACLs, backups)
+- **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling guide
+- **Headscale:** https://headscale.net/
+- **Tailscale:** https://tailscale.com/kb/
 
 ---
 
@@ -416,10 +344,9 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 ├── provision_vps.sh          # Main setup script (run this)
 ├── setup_exit_node.sh        # Post-install exit node helper
 ├── test_setup.sh             # Remote VPS verification
-├── ADMIN_GUIDE.md            # Complete admin reference
-├── SPLIT_TUNNELING.md        # Split tunneling & ACL guide
 ├── QUICKSTART.md             # Quick setup guide
-├── GITOPS_DNS.md             # GitOps DNS filter management guide
+├── ADMIN_GUIDE.md            # Admin reference
+├── SPLIT_TUNNELING.md        # Split tunneling guide
 ├── .github/
 │   └── workflows/
 │       └── deploy-dns.yml    # GitHub Actions workflow for DNS deployment
