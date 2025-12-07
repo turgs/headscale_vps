@@ -50,7 +50,7 @@ Settings → Change Password
 **Note:** 
 - Access via your domain name (robin-easy.bnr.la) or IP address (103.100.37.13).
 - AdGuard Home UI uses HTTP (not HTTPS) on port 3000. While this port is accessible from the internet, **changing the password immediately** secures your DNS filtering settings.
-- For enhanced security, you can restrict port 3000 access to only your IP after changing the password (see Security Best Practices below).
+- For enhanced security, you can restrict port 3000 access to only your VPN network after changing the password (see Security Best Practices below).
 
 ### 2. Create Headscale User & Pre-Auth Key
 
@@ -143,7 +143,7 @@ ssh deploy@robin-easy.bnr.la -p 33003
 # Remove public access to AdGuard Home UI
 sudo ufw delete allow 3000/tcp
 
-# Allow access only from VPN network (100.64.0.0/10 is the Tailscale/Headscale network range)
+# Allow access only from VPN network (100.64.0.0/10 is the CGNAT range used by Headscale)
 sudo ufw allow from 100.64.0.0/10 to any port 3000 proto tcp comment 'AdGuard Home UI - VPN only'
 
 # Reload firewall
