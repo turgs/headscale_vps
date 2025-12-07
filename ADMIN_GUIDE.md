@@ -7,14 +7,14 @@ Quick reference for managing your Headscale VPS with HTTPS and ACL support.
 ### With Domain (HTTPS - Recommended)
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
-  --domain="vpn.bethanytim.com"
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
+  --domain="robin-easy.bnr.la"
 ```
 
-**Before running:**
-1. Set up DNS A record: `vpn.bethanytim.com` → `YOUR_SERVER_IP`
-2. Wait for DNS propagation (can take 5-60 minutes)
-3. Ensure ports 80, 443 are accessible for Let's Encrypt
+**For Binary Lane VPS:**
+1. Domain `robin-easy.bnr.la` is provided automatically - no DNS setup needed!
+2. DNS already points to 103.100.37.13
+3. Ports 80, 443 are accessible by default for Let's Encrypt
 
 ### Without Domain (HTTP)
 
@@ -31,7 +31,7 @@ Uses HTTP on port 8080.
 ### Create Users
 
 ```bash
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Create users for each family member
 sudo headscale users create mom
@@ -70,7 +70,7 @@ sudo headscale users destroy USERNAME
 ### Edit ACL Policy
 
 ```bash
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 sudo nano /etc/headscale/acl.yaml
 ```
 
@@ -221,7 +221,7 @@ sudo systemctl start caddy
 ### Access AdGuard Home UI
 
 ```
-http://vpn.bethanytim.com:3000  (use your domain)
+http://robin-easy.bnr.la:3000  (or http://103.100.37.13:3000)
 ```
 
 Login: `admin` / `changeme` (change immediately!)
@@ -234,14 +234,14 @@ Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` in GitHub → comm
 
 **Method 2: AdGuard Web UI**
 
-Visit `http://vpn.bethanytim.com:3000` → Filters → Custom filtering rules
+Visit `http://robin-easy.bnr.la:3000` → Filters → Custom filtering rules
 - Allow: `@@||example.com^$important`
 - Block: `||badsite.com^`
 
 **Method 3: SSH**
 
 ```bash
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
 # Edit user_rules section
 sudo systemctl restart adguardhome
@@ -295,7 +295,7 @@ sudo journalctl -u adguardhome -f
 
 ```bash
 # On VPS
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Create backup directory
 mkdir -p ~/backups/$(date +%Y%m%d)
@@ -310,17 +310,17 @@ sudo cp /opt/adguardhome/conf/AdGuardHome.yaml ~/backups/$(date +%Y%m%d)/
 
 # Download to local machine
 exit
-scp -P 33003 -r deploy@vpn.bethanytim.com:~/backups/$(date +%Y%m%d) ./headscale-backup-$(date +%Y%m%d)
+scp -P 33003 -r deploy@robin-easy.bnr.la:~/backups/$(date +%Y%m%d) ./headscale-backup-$(date +%Y%m%d)
 ```
 
 ### Restore from Backup
 
 ```bash
 # Upload backup to VPS
-scp -P 33003 -r ./headscale-backup-20231206 deploy@vpn.bethanytim.com:~/restore/
+scp -P 33003 -r ./headscale-backup-20231206 deploy@robin-easy.bnr.la:~/restore/
 
 # On VPS
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Stop services
 sudo systemctl stop headscale
@@ -356,7 +356,7 @@ sudo headscale nodes list  # Test CLI
 
 ```bash
 # Check DNS is pointing to server
-dig vpn.bethanytim.com
+dig robin-easy.bnr.la
 
 # Check ports are open
 sudo ufw status
@@ -376,7 +376,7 @@ sudo systemctl status headscale
 sudo ufw status
 
 # If using domain, check DNS
-curl -I https://vpn.bethanytim.com
+curl -I https://robin-easy.bnr.la
 
 # Check routes
 sudo headscale routes list
@@ -414,7 +414,7 @@ sudo cat /etc/headscale/config.yaml | grep -A 5 dns_config
 ## Updating Headscale
 
 ```bash
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Check current version
 headscale version
@@ -470,7 +470,7 @@ headscale version
 
 ```bash
 # SSH into VPS
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Create user and get key
 sudo headscale users create USERNAME

@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # provision_vps.sh - Ubuntu VPS Provisioning Script for Headscale Exit Node
-# Designed for HostHatch VPS running Ubuntu 22.04/24.04 LTS
+# Designed for Binary Lane (or any Ubuntu 22.04/24.04 LTS VPS)
 #
 # Usage:
-#   bash provision_vps.sh --ssh-key="ssh-ed25519 AAAA..." --domain="headscale.example.com"
+#   bash provision_vps.sh --ssh-key="ssh-ed25519 AAAA..." --domain="robin-easy.bnr.la"
 #
 # See README.md for full documentation
 #
@@ -216,7 +216,7 @@ print_warning() {
 main() {
     parse_args "$@"
     
-    print_header "🚀 Starting HostHatch VPS Provisioning for Headscale"
+    print_header "🚀 Starting VPS Provisioning for Headscale (Binary Lane)"
     
     print_info "Configuration:"
     print_info "  Deploy User: $DEPLOY_USER"

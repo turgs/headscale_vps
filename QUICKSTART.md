@@ -4,7 +4,7 @@ Get your Headscale VPS up and running in minutes!
 
 ## Prerequisites
 
-- A fresh Ubuntu 22.04 or 24.04 VPS (HostHatch or any provider)
+- A fresh Ubuntu 22.04 or 24.04 VPS (Binary Lane or any provider)
 - SSH access as root
 - Your SSH public key (optional but recommended)
 
@@ -26,14 +26,14 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 ### Option C: With Domain (Recommended for HTTPS)
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
   --ssh-key="$(cat ~/.ssh/id_ed25519.pub)" \
-  --domain="vpn.bethanytim.com"
+  --domain="robin-easy.bnr.la"
 ```
 
-**Before running with a domain:**
-1. Ensure DNS A record for `vpn.bethanytim.com` points to your VPS IP
-2. Wait a few minutes for DNS propagation
+**For Binary Lane VPS:**
+1. Domain `robin-easy.bnr.la` is provided automatically by Binary Lane
+2. DNS already points to your VPS (103.100.37.13) - no setup needed!
 3. Caddy will automatically obtain a Let's Encrypt SSL certificate
 4. Your Headscale server will be accessible via HTTPS
 
@@ -95,8 +95,8 @@ This will:
 curl -fsSL https://tailscale.com/install.sh | sh
 
 # Connect to your Headscale server (use HTTPS if you set up a domain)
-sudo tailscale up --login-server https://vpn.bethanytim.com
-# Or with IP: sudo tailscale up --login-server http://YOUR_SERVER_IP:8080
+sudo tailscale up --login-server https://robin-easy.bnr.la
+# Or with IP: sudo tailscale up --login-server http://103.100.37.13:8080
 ```
 
 #### Windows (Step-by-Step):
@@ -106,7 +106,7 @@ sudo tailscale up --login-server https://vpn.bethanytim.com
 3. After installation, find the Tailscale icon in your system tray (near clock)
 4. Right-click the icon → "Settings"
 5. Find "Login Server" or "Custom Control Server"
-6. Enter: `https://vpn.bethanytim.com` (or `http://YOUR_SERVER_IP:8080` with your actual VPS IP)
+6. Enter: `https://robin-easy.bnr.la` (or `http://103.100.37.13:8080` with your actual VPS IP)
 7. Click "Save" then "Connect"
 8. After connected, right-click icon again → "Exit Node" → Select your VPS
 9. You're now routing through your VPS!
@@ -180,7 +180,8 @@ Run the automated test:
 
 ```bash
 # From your local machine
-curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/test_setup.sh | bash -s YOUR_SERVER_IP
+curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/test_setup.sh | bash -s robin-easy.bnr.la
+# Or with IP: bash -s 103.100.37.13
 ```
 
 ---
@@ -193,7 +194,7 @@ Your VPS now blocks ads, tracking, and adult content automatically!
 
 **IMPORTANT:** Change the default password immediately:
 
-1. Visit `http://YOUR_SERVER_IP:3000`
+1. Visit `http://robin-easy.bnr.la:3000` (or `http://103.100.37.13:3000`)
 2. Login with `admin` / `changeme`
 3. Go to Settings → Change Password
 
@@ -215,7 +216,7 @@ sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
 sudo systemctl restart adguardhome
 ```
 
-Or use the web UI at `http://YOUR_SERVER_IP:3000` → Filters → Custom filtering rules
+Or use the web UI at `http://robin-easy.bnr.la:3000` → Filters → Custom filtering rules
 
 ### What's Blocked by Default?
 
@@ -233,7 +234,7 @@ Or use the web UI at `http://YOUR_SERVER_IP:3000` → Filters → Custom filteri
 - **Create more users**: `sudo headscale users create username`
 - **Configure ACLs**: Edit `/etc/headscale/acl.yaml` (see `config/acl.yaml` for template)
 - **Setup split tunneling**: See [SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)
-- **Monitor DNS filtering**: Visit `http://YOUR_SERVER_IP:3000`
+- **Monitor DNS filtering**: Visit `http://robin-easy.bnr.la:3000`
 
 ## Managing Access Control (ACLs)
 

@@ -26,18 +26,44 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Deploy
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
-          SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
         run: |
+          set -euo pipefail
+          
+          # Load VPS configuration from config file
+          if [[ ! -f config/vps-config.txt ]]; then
+            echo "ERROR: config/vps-config.txt not found"
+            exit 1
+          fi
+          
+          # Safely parse config file (only extract expected variables)
+          VPS_DOMAIN=$(grep '^VPS_DOMAIN=' config/vps-config.txt | sed 's/^VPS_DOMAIN=//')
+          SSH_PORT=$(grep '^SSH_PORT=' config/vps-config.txt | sed 's/^SSH_PORT=//')
+          SSH_USER=$(grep '^SSH_USER=' config/vps-config.txt | sed 's/^SSH_USER=//')
+          
+          # Validate required variables
+          if [[ -z "${VPS_DOMAIN:-}" ]]; then
+            echo "ERROR: VPS_DOMAIN not set in config/vps-config.txt"
+            exit 1
+          fi
+          if [[ -z "${SSH_PORT:-}" ]]; then
+            echo "ERROR: SSH_PORT not set in config/vps-config.txt"
+            exit 1
+          fi
+          if [[ -z "${SSH_USER:-}" ]]; then
+            echo "ERROR: SSH_USER not set in config/vps-config.txt"
+            exit 1
+          fi
+          
+          # Create temporary SSH key file with secure permissions
           KEY_FILE=$(mktemp)
-          trap "rm -f $KEY_FILE" EXIT
+          chmod 600 "$KEY_FILE"
+          trap "rm -f '$KEY_FILE'" EXIT
           
           echo "${{ secrets.VPS_SSH_KEY }}" > "$KEY_FILE"
-          chmod 600 "$KEY_FILE"
           
-          ARGS="--host=$VPS_HOST --ssh-key=$KEY_FILE --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
-          [[ "${{ inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
-          
-          ./scripts/deploy-dns.sh $ARGS
+          # Run deploy script with properly quoted arguments
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            ./scripts/deploy-dns.sh --host="$VPS_DOMAIN" --ssh-key="$KEY_FILE" --ssh-port="$SSH_PORT" --ssh-user="$SSH_USER" --dry-run
+          else
+            ./scripts/deploy-dns.sh --host="$VPS_DOMAIN" --ssh-key="$KEY_FILE" --ssh-port="$SSH_PORT" --ssh-user="$SSH_USER"
+          fi

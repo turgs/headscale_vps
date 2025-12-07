@@ -31,7 +31,7 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 **DO THIS FIRST for security!**
 
 ```
-Visit: http://vpn.bethanytim.com:3000 (or http://YOUR_DOMAIN:3000)
+Visit: http://robin-easy.bnr.la:3000 (or http://YOUR_DOMAIN:3000)
 Login: admin / changeme
 Settings → Change Password
 ```
@@ -65,7 +65,7 @@ sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 1. Right-click Tailscale icon
 2. Click "Settings"
 3. Find "Login Server" or "Custom Control Server"
-4. Enter: `https://vpn.bethanytim.com` (use your domain)
+4. Enter: `https://robin-easy.bnr.la` (use your domain)
 5. Click "Save" then "Connect"
 6. Browser will open - follow authorization
 
@@ -90,7 +90,7 @@ sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 curl -fsSL https://tailscale.com/install.sh | sh
 
 # Connect (use your domain with HTTPS)
-sudo tailscale up --login-server https://vpn.bethanytim.com
+sudo tailscale up --login-server https://robin-easy.bnr.la
 
 # Use exit node
 sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
@@ -101,7 +101,7 @@ sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
 1. Install Tailscale app from Play Store/App Store
 2. Open app → Settings
 3. "Use alternate server" or "Login server"
-4. Enter: `https://vpn.bethanytim.com` (use your domain)
+4. Enter: `https://robin-easy.bnr.la` (use your domain)
 5. Connect
 6. Tap Settings → "Exit Node" → Select your VPS
 
@@ -179,7 +179,7 @@ distracting-game.com
 If you prefer SSH instead of GitOps:
 
 ```bash
-ssh deploy@vpn.bethanytim.com -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Edit AdGuard Home config
 sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
@@ -214,14 +214,14 @@ Options:
 Using a domain enables automatic HTTPS with Let's Encrypt:
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
-  --domain="vpn.bethanytim.com"
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
+  --domain="robin-easy.bnr.la"
 ```
 
-**Important**: Before running with a domain, make sure:
-1. You own the domain
-2. DNS A record points to your VPS IP address
-3. Port 80 and 443 are accessible (for Let's Encrypt verification)
+**Important**: Binary Lane provides the domain `robin-easy.bnr.la` automatically - no DNS setup needed!
+- No need to purchase a separate domain
+- DNS already points to your VPS (103.100.37.13)
+- Port 80 and 443 are accessible for Let's Encrypt
 
 ---
 
@@ -230,11 +230,11 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 **Quick Setup:**
 
 1. Fork this repo
-2. Add GitHub Secrets (Settings → Secrets → Actions):
-   - `VPS_HOST` - Your domain (e.g., `vpn.example.com`)
-   - `VPS_SSH_KEY` - Your SSH private key
-3. Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` on GitHub
-4. Commit → Auto-deploys to VPS
+2. Update `config/vps-config.txt` with your VPS details (if different)
+3. Add GitHub Secret (Settings → Secrets → Actions):
+   - `VPS_SSH_KEY` - Your SSH private key (only secret needed!)
+4. Edit `config/dns-allowlist.txt` or `config/dns-blocklist.txt` on GitHub
+5. Commit → Auto-deploys to VPS
 
 **Files:** One domain per line, `#` for comments
 ```txt
@@ -242,7 +242,9 @@ youtube.com
 facebook.com  # comment
 ```
 
-**Manual deploy:** `./scripts/deploy-dns.sh --host=vpn.example.com`
+**Manual deploy:** `./scripts/deploy-dns.sh --host=robin-easy.bnr.la`
+
+**Detailed setup guide:** See [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)
 
 ---
 
@@ -255,7 +257,7 @@ facebook.com  # comment
 
 **Performance:**
 - Speed limited by VPS bandwidth
-- HostHatch typically provides 1 Gbps
+- Binary Lane typically provides 1 Gbps
 
 **Privacy:**
 - Your VPS provider can see traffic
@@ -265,7 +267,7 @@ facebook.com  # comment
 **For Family Use:**
 - Ad/porn blocking enabled by default
 - Can't be easily disabled by users
-- Monitor at: `http://vpn.bethanytim.com:3000` (use your domain)
+- Monitor at: `http://robin-easy.bnr.la:3000` (use your domain)
 
 ---
 
@@ -317,22 +319,24 @@ sudo systemctl reload headscale
 
 ## 🔒 HTTPS Setup
 
-When you provide a domain using `--domain=vpn.bethanytim.com`, the script automatically:
+When you provide a domain using `--domain=robin-easy.bnr.la`, the script automatically:
 - Installs Caddy reverse proxy
 - Configures automatic HTTPS with Let's Encrypt
 - Sets up security headers
 - Enables HTTP/2
 
-**Prerequisites:**
-- Own a domain name
-- DNS A record pointing to your VPS
-- Ports 80 and 443 open
+**For Binary Lane VPS:**
+- Domain `robin-easy.bnr.la` is provided automatically
+- DNS already configured (points to 103.100.37.13)
+- No domain purchase needed
+- Ports 80 and 443 are open by default
 
 ## 📚 Additional Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
 - **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Admin reference (users, ACLs, backups)
 - **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling guide
+- **[GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)** - GitHub Actions automation setup
 - **Headscale:** https://headscale.net/
 - **Tailscale:** https://tailscale.com/kb/
 
@@ -353,6 +357,7 @@ When you provide a domain using `--domain=vpn.bethanytim.com`, the script automa
 ├── scripts/
 │   └── deploy-dns.sh         # DNS deployment script
 └── config/
+    ├── vps-config.txt        # VPS configuration (provider, domain, IP)
     ├── deploy.yml            # Kamal config (for updates)
     ├── headscale-config.yaml # Headscale configuration template
     ├── acl.yaml              # ACL policy template

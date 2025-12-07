@@ -9,7 +9,7 @@ image: headscale/headscale
 # Servers to deploy to
 servers:
   web:
-    - YOUR_SERVER_IP
+    - robin-easy.bnr.la  # Binary Lane provided domain (or use 103.100.37.13)
 
 # Registry configuration (optional, for private images)
 # registry:
@@ -50,7 +50,7 @@ volumes:
 accessories:
   headscale-ui:
     image: ghcr.io/gurucomputing/headscale-ui:latest
-    host: YOUR_SERVER_IP
+    host: robin-easy.bnr.la  # Binary Lane provided domain (or use 103.100.37.13)
     port: "9080:80"
     volumes:
       - "headscale_ui_data:/app/data"

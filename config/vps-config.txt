@@ -1,0 +1,24 @@
+# VPS Configuration
+# This file contains the configuration for the current VPS deployment
+
+# VPS Provider
+VPS_PROVIDER=Binary Lane
+
+# VPS Domain (provided by Binary Lane)
+VPS_DOMAIN=robin-easy.bnr.la
+
+# VPS Public IP Address
+VPS_IP=103.100.37.13
+
+# SSH Configuration
+SSH_PORT=33003
+SSH_USER=deploy
+
+# Notes:
+# - Binary Lane provides the domain robin-easy.bnr.la automatically
+# - No custom domain registration is required
+# - For initial provisioning, use: ssh root@103.100.37.13
+# - After provisioning, use: ssh deploy@robin-easy.bnr.la -p 33003
+# - Root username is always 'root' for Binary Lane
+# - Root password is provided by Binary Lane (store as GitHub Secret: VPS_ROOT_PASSWORD)
+# - The provision script creates the 'deploy' user with SSH key authentication
