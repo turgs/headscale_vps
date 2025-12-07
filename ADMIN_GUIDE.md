@@ -19,7 +19,7 @@ ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.co
 ### Without Domain (HTTP)
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
 ```
 
 Uses HTTP on port 8080.

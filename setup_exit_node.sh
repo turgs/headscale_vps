@@ -152,12 +152,12 @@ main() {
             sudo tailscale status
         else
             print_warning "Failed to connect. Try manually:"
-            echo "  sudo tailscale up --login-server=$SERVER_URL --authkey=YOUR_KEY --advertise-exit-node"
+            echo "  sudo tailscale up --login-server=$SERVER_URL --authkey=<YOUR_PREAUTH_KEY> --advertise-exit-node"
         fi
     else
         print_info "To connect manually, run:"
         echo ""
-        echo "  sudo tailscale up --login-server=$SERVER_URL --authkey=YOUR_KEY --advertise-exit-node"
+        echo "  sudo tailscale up --login-server=$SERVER_URL --authkey=<YOUR_PREAUTH_KEY> --advertise-exit-node"
         echo ""
     fi
     

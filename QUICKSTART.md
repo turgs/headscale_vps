@@ -13,13 +13,13 @@ Get your Headscale VPS up and running in minutes!
 ### Option A: One-Liner (Simplest)
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
 ```
 
 ### Option B: With Your SSH Key
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
   --ssh-key="$(cat ~/.ssh/id_ed25519.pub)"
 ```
 
@@ -66,7 +66,8 @@ The server will automatically reboot after provisioning. Wait 2-3 minutes.
 SSH into your VPS:
 
 ```bash
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
+# Or: ssh deploy@103.100.37.13 -p 33003
 ```
 
 Run the exit node setup script:
@@ -123,8 +124,8 @@ sudo tailscale up --login-server https://robin-easy.bnr.la
 # See available exit nodes
 tailscale exit-node list
 
-# Use your VPS as exit node
-sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
+# Use your VPS as exit node (replace with your actual VPS hostname from 'tailscale status')
+sudo tailscale set --exit-node robin-easy
 ```
 
 Or use the Tailscale GUI to select the exit node.
@@ -150,13 +151,13 @@ Should show your VPS's IP address!
 Wait 3 minutes for reboot, then:
 
 ```bash
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 ```
 
 ### Headscale not responding?
 
 ```bash
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 sudo systemctl status headscale
 sudo journalctl -u headscale -f
 ```
@@ -204,7 +205,7 @@ To allow a blocked site, edit the AdGuard Home config:
 
 ```bash
 # SSH into your VPS
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Edit config file
 sudo nano /opt/adguardhome/conf/AdGuardHome.yaml
@@ -242,7 +243,7 @@ Control which users can access which devices:
 
 ```bash
 # SSH into VPS
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 
 # Edit ACL policy
 sudo nano /etc/headscale/acl.yaml

@@ -51,8 +51,8 @@ This is the easiest approach for families - choose which devices use the VPN.
 
 #### macOS/Linux
 ```bash
-# Enable exit node
-sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
+# Enable exit node (replace with your actual VPS hostname from 'tailscale status')
+sudo tailscale set --exit-node robin-easy
 
 # Disable exit node
 sudo tailscale set --exit-node=
