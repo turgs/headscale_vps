@@ -27,8 +27,29 @@ jobs:
       
       - name: Deploy
         run: |
+          set -euo pipefail
+          
           # Load VPS configuration from config file
+          if [[ ! -f config/vps-config.txt ]]; then
+            echo "ERROR: config/vps-config.txt not found"
+            exit 1
+          fi
+          
           source config/vps-config.txt
+          
+          # Validate required variables
+          if [[ -z "${VPS_DOMAIN:-}" ]]; then
+            echo "ERROR: VPS_DOMAIN not set in config/vps-config.txt"
+            exit 1
+          fi
+          if [[ -z "${SSH_PORT:-}" ]]; then
+            echo "ERROR: SSH_PORT not set in config/vps-config.txt"
+            exit 1
+          fi
+          if [[ -z "${SSH_USER:-}" ]]; then
+            echo "ERROR: SSH_USER not set in config/vps-config.txt"
+            exit 1
+          fi
           
           # Create temporary SSH key file
           KEY_FILE=$(mktemp)
