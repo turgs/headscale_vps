@@ -28,7 +28,18 @@ ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.co
 
 ### 1. Change AdGuard Home Password
 
+**What is AdGuard Home?**
+AdGuard Home is a DNS-based ad blocker and privacy protection tool that runs on your VPS. It blocks:
+- Advertisements on websites and apps
+- Tracking/analytics scripts
+- Adult/pornographic content
+- Known malware domains
+
+All devices connected to your VPN automatically use AdGuard Home for DNS filtering.
+
 **DO THIS FIRST for security!**
+
+The default admin credentials need to be changed immediately to prevent unauthorized access to your DNS filtering settings.
 
 ```
 Visit: http://robin-easy.bnr.la:3000
@@ -36,9 +47,19 @@ Login: admin / changeme
 Settings → Change Password
 ```
 
-**Note:** Access via your domain name (robin-easy.bnr.la) or IP address (103.100.37.13).
+**Note:** 
+- Access via your domain name (robin-easy.bnr.la) or IP address (103.100.37.13).
+- AdGuard Home UI uses HTTP (not HTTPS) on port 3000. While this port is accessible from the internet, **changing the password immediately** secures your DNS filtering settings.
+- For enhanced security, you can restrict port 3000 access to only your IP after changing the password (see Security Best Practices below).
 
 ### 2. Create Headscale User & Pre-Auth Key
+
+**What you need to do as admin:**
+
+To connect devices to your VPN, you need to:
+1. Create a Headscale user (one per person or device group)
+2. Generate a pre-authentication key for that user
+3. Share the key with the device owner to connect their devices
 
 SSH into your VPS (port 33003):
 
@@ -46,12 +67,14 @@ SSH into your VPS (port 33003):
 ssh deploy@robin-easy.bnr.la -p 33003
 # Or using IP: ssh deploy@103.100.37.13 -p 33003
 
-# Create user
+# Create user (e.g., for family members: mom, dad, child1)
 sudo headscale users create myuser
 
 # Generate pre-auth key (save this!)
 sudo headscale preauthkeys create --user myuser --reusable --expiration 24h
 ```
+
+**Pre-auth keys allow devices to automatically join your VPN without manual approval.**
 
 ### 3. Connect Client Devices
 
@@ -105,6 +128,29 @@ sudo tailscale set --exit-node robin-easy
 4. Enter: `https://robin-easy.bnr.la` (use your domain)
 5. Connect
 6. Tap Settings → "Exit Node" → Select your VPS
+
+---
+
+## 🔐 Security Best Practices
+
+### Restrict AdGuard Home Access (Optional but Recommended)
+
+After changing the AdGuard Home password, you can restrict port 3000 access to only your VPN network:
+
+```bash
+ssh deploy@robin-easy.bnr.la -p 33003
+
+# Remove public access to AdGuard Home UI
+sudo ufw delete allow 3000/tcp
+
+# Allow access only from Tailscale network (100.64.0.0/10)
+sudo ufw allow from 100.64.0.0/10 to any port 3000 proto tcp comment 'AdGuard Home UI - VPN only'
+
+# Reload firewall
+sudo ufw reload
+```
+
+After this change, you can only access AdGuard Home when connected to your VPN, providing an additional security layer.
 
 ---
 

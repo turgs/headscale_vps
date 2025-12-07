@@ -218,6 +218,9 @@ sudo systemctl start caddy
 
 ## DNS & AdGuard Home Management
 
+**What is AdGuard Home?**
+AdGuard Home is a network-wide DNS filtering solution that provides ad blocking, privacy protection, and parental controls for all devices connected to your VPN. It runs on your VPS and automatically filters DNS queries from all VPN users.
+
 ### Access AdGuard Home UI
 
 ```
@@ -225,6 +228,11 @@ http://robin-easy.bnr.la:3000  (or http://103.100.37.13:3000)
 ```
 
 Login: `admin` / `changeme` (change immediately!)
+
+**Security Note:** 
+- AdGuard Home uses HTTP on port 3000, which is accessible from the internet by default.
+- **Always change the default password immediately** after installation.
+- For enhanced security, restrict port 3000 to VPN-only access (see Security Best Practices section below).
 
 ### Managing DNS Filters
 
@@ -441,26 +449,39 @@ headscale version
 ## Security Best Practices
 
 1. **Change default passwords immediately**
-   - AdGuard Home admin password
+   - AdGuard Home admin password (default: `admin` / `changeme`)
    - Deploy user password (if not using SSH keys)
 
-2. **Keep ACLs restrictive**
+2. **Restrict AdGuard Home access to VPN only (Recommended)**
+   ```bash
+   # Remove public access
+   sudo ufw delete allow 3000/tcp
+   
+   # Allow only from Tailscale network
+   sudo ufw allow from 100.64.0.0/10 to any port 3000 proto tcp comment 'AdGuard Home UI - VPN only'
+   
+   # Reload firewall
+   sudo ufw reload
+   ```
+   After this, AdGuard Home will only be accessible when connected to your VPN.
+
+3. **Keep ACLs restrictive**
    - Kids should only access exit node, not family devices
    - Guests should have minimal access
 
-3. **Regular backups**
+4. **Regular backups**
    - Weekly backup of database and configs
    - Test restore procedure
 
-4. **Monitor logs**
+5. **Monitor logs**
    - Check for unauthorized access attempts
    - Review fail2ban reports
 
-5. **Update regularly**
+6. **Update regularly**
    - Enable unattended-upgrades (done by provision script)
    - Manually update Headscale when new versions release
 
-6. **Use HTTPS**
+7. **Use HTTPS for Headscale**
    - Always use domain with HTTPS in production
    - HTTP is acceptable for testing only
 
