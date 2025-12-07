@@ -11,7 +11,7 @@ Automated script to provision an Ubuntu VPS as a Headscale server and exit node 
 Run this one command on your fresh Ubuntu 22.04/24.04 VPS:
 
 ```bash
-ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
+ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
 ```
 
 **What you get:**
@@ -31,19 +31,20 @@ ssh root@YOUR_SERVER_IP 'bash -s' < <(curl -fsSL https://raw.githubusercontent.c
 **DO THIS FIRST for security!**
 
 ```
-Visit: http://robin-easy.bnr.la:3000 (or http://YOUR_DOMAIN:3000)
+Visit: http://robin-easy.bnr.la:3000
 Login: admin / changeme
 Settings → Change Password
 ```
 
-**Note:** Access via your domain name (not IP address) for security and convenience.
+**Note:** Access via your domain name (robin-easy.bnr.la) or IP address (103.100.37.13).
 
 ### 2. Create Headscale User & Pre-Auth Key
 
 SSH into your VPS (port 33003):
 
 ```bash
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
+# Or using IP: ssh deploy@103.100.37.13 -p 33003
 
 # Create user
 sudo headscale users create myuser
@@ -92,8 +93,8 @@ curl -fsSL https://tailscale.com/install.sh | sh
 # Connect (use your domain with HTTPS)
 sudo tailscale up --login-server https://robin-easy.bnr.la
 
-# Use exit node
-sudo tailscale set --exit-node YOUR_VPS_HOSTNAME
+# Use exit node (replace with your actual VPS hostname from 'tailscale status')
+sudo tailscale set --exit-node robin-easy
 ```
 
 #### Android/iOS
@@ -276,12 +277,13 @@ facebook.com  # comment
 **Can't SSH after reboot?**
 ```bash
 # Wait 2-3 minutes, then use port 33003:
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
+# Or: ssh deploy@103.100.37.13 -p 33003
 ```
 
 **Headscale not working?**
 ```bash
-ssh deploy@YOUR_SERVER_IP -p 33003
+ssh deploy@robin-easy.bnr.la -p 33003
 sudo systemctl status headscale
 sudo journalctl -u headscale -f
 ```

@@ -190,7 +190,8 @@ If you need to change the SSH key:
 2. Add new public key to VPS:
    ```bash
    ssh -p 33003 deploy@robin-easy.bnr.la
-   echo "YOUR_NEW_PUBLIC_KEY" >> ~/.ssh/authorized_keys
+   # Copy your new public key content and add it:
+   echo "ssh-ed25519 AAAA...YOUR_PUBLIC_KEY_HERE...user@host" >> ~/.ssh/authorized_keys
    ```
 
 3. Update `VPS_SSH_KEY` secret in GitHub with new private key

@@ -316,7 +316,7 @@ main() {
         echo "     ssh ${SSH_USER}@${SERVER_IP} -p ${SSH_PORT} sudo headscale preauthkeys create --user myuser --reusable"
         echo ""
         echo "  3. Connect the VPS as an exit node:"
-        echo "     ssh ${SSH_USER}@${SERVER_IP} -p ${SSH_PORT} sudo tailscale up --login-server http://${SERVER_IP}:8080 --authkey YOUR_KEY --advertise-exit-node"
+        echo "     ssh ${SSH_USER}@${SERVER_IP} -p ${SSH_PORT} sudo tailscale up --login-server http://${SERVER_IP}:8080 --authkey <YOUR_PREAUTH_KEY> --advertise-exit-node"
         echo ""
         exit 0
     else
