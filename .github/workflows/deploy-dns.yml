@@ -36,9 +36,9 @@ jobs:
           fi
           
           # Safely parse config file (only extract expected variables)
-          VPS_DOMAIN=$(grep '^VPS_DOMAIN=' config/vps-config.txt | cut -d'=' -f2)
-          SSH_PORT=$(grep '^SSH_PORT=' config/vps-config.txt | cut -d'=' -f2)
-          SSH_USER=$(grep '^SSH_USER=' config/vps-config.txt | cut -d'=' -f2)
+          VPS_DOMAIN=$(grep '^VPS_DOMAIN=' config/vps-config.txt | sed 's/^VPS_DOMAIN=//')
+          SSH_PORT=$(grep '^SSH_PORT=' config/vps-config.txt | sed 's/^SSH_PORT=//')
+          SSH_USER=$(grep '^SSH_USER=' config/vps-config.txt | sed 's/^SSH_USER=//')
           
           # Validate required variables
           if [[ -z "${VPS_DOMAIN:-}" ]]; then
@@ -54,12 +54,12 @@ jobs:
             exit 1
           fi
           
-          # Create temporary SSH key file
+          # Create temporary SSH key file with secure permissions
           KEY_FILE=$(mktemp)
-          trap "rm -f $KEY_FILE" EXIT
+          chmod 600 "$KEY_FILE"
+          trap "rm -f '$KEY_FILE'" EXIT
           
           echo "${{ secrets.VPS_SSH_KEY }}" > "$KEY_FILE"
-          chmod 600 "$KEY_FILE"
           
           # Run deploy script with properly quoted arguments
           if [[ "${{ inputs.dry_run }}" == "true" ]]; then
