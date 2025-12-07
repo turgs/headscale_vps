@@ -84,20 +84,37 @@ echo "📦 Deploying..."
 BACKUP_PATH="${CONFIG_PATH}.backup.$(date +%Y%m%d_%H%M%S)"
 
 UPDATE_SCRIPT='
+set -euo pipefail
 CONFIG="$1"
 BACKUP="$2"
-sudo cp "$CONFIG" "$BACKUP"
+
+# Backup
+sudo cp "$CONFIG" "$BACKUP" || exit 1
+
+# Update config
 python3 - "$CONFIG" << "PY_EOF"
 import sys, re
 with open(sys.argv[1], "r") as f: content = f.read()
+if "user_rules:" not in content:
+    print("ERROR: user_rules section not found"); sys.exit(1)
 rules = sys.stdin.read().strip()
 content = re.sub(r"(user_rules:)(?:\n\s*-\s*[^\n]+)*", f"user_rules:\n{rules}", content, flags=re.MULTILINE)
 with open(sys.argv[1] + ".tmp", "w") as f: f.write(content)
 PY_EOF
-sudo mv "${CONFIG}.tmp" "$CONFIG"
-sudo systemctl restart adguardhome
+
+sudo mv "${CONFIG}.tmp" "$CONFIG" || exit 1
+
+# Restart and verify
+sudo systemctl restart adguardhome || exit 1
 sleep 2
-sudo systemctl is-active --quiet adguardhome || { sudo cp "$BACKUP" "$CONFIG"; sudo systemctl restart adguardhome; exit 1; }
+
+# Check if running, rollback if not
+if ! sudo systemctl is-active --quiet adguardhome; then
+    echo "Service failed, rolling back..."
+    sudo cp "$BACKUP" "$CONFIG"
+    sudo systemctl restart adguardhome
+    exit 1
+fi
 '
 
 if echo "$USER_RULES" | $SSH_CMD "bash -s -- $CONFIG_PATH $BACKUP_PATH" <<< "$UPDATE_SCRIPT"; then

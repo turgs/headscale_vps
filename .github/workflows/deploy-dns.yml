@@ -31,13 +31,13 @@ jobs:
           SSH_PORT: ${{ secrets.VPS_SSH_PORT || '33003' }}
           SSH_USER: ${{ secrets.VPS_SSH_USER || 'deploy' }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/key
-          chmod 600 ~/.ssh/key
+          KEY_FILE=$(mktemp)
+          trap "rm -f $KEY_FILE" EXIT
           
-          ARGS="--host=$VPS_HOST --ssh-key=~/.ssh/key --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
+          echo "${{ secrets.VPS_SSH_KEY }}" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          
+          ARGS="--host=$VPS_HOST --ssh-key=$KEY_FILE --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
           [[ "${{ inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
           
           ./scripts/deploy-dns.sh $ARGS
-          
-          rm -f ~/.ssh/key
