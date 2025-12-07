@@ -417,6 +417,7 @@ When you provide a domain using `--domain=robin-easy.bnr.la`, the script automat
 ## 📚 Additional Documentation
 
 - **[1PASSWORD_SETUP.md](1PASSWORD_SETUP.md)** - 1Password CLI integration (eliminate manual passwords!)
+- **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)** - Practical examples and use cases for 1Password integration
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
 - **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Admin reference (users, ACLs, backups)
 - **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling guide
@@ -434,6 +435,7 @@ When you provide a domain using `--domain=robin-easy.bnr.la`, the script automat
 ├── setup_exit_node.sh        # Post-install exit node helper
 ├── test_setup.sh             # Remote VPS verification
 ├── 1PASSWORD_SETUP.md        # 1Password CLI integration guide
+├── USAGE_EXAMPLES.md         # Practical 1Password usage examples
 ├── QUICKSTART.md             # Quick setup guide
 ├── ADMIN_GUIDE.md            # Admin reference
 ├── SPLIT_TUNNELING.md        # Split tunneling guide
@@ -443,6 +445,8 @@ When you provide a domain using `--domain=robin-easy.bnr.la`, the script automat
 ├── scripts/
 │   ├── deploy-dns.sh         # DNS deployment script
 │   └── 1password-helper.sh   # 1Password CLI helper functions
+├── tests/
+│   └── test_1password_helper.sh # Unit tests for 1Password integration
 └── config/
     ├── vps-config.txt        # VPS configuration (provider, domain, IP)
     ├── deploy.yml            # Kamal config (for updates)
