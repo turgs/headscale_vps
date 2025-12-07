@@ -7,23 +7,42 @@ Get your Headscale VPS up and running in minutes!
 - A fresh Ubuntu 22.04 or 24.04 VPS (Binary Lane or any provider)
 - SSH access as root
 - Your SSH public key (optional but recommended)
+- *Optional:* 1Password CLI for automatic password entry (see [1PASSWORD_SETUP.md](1PASSWORD_SETUP.md))
 
 ## Step 1: Provision the VPS
 
-### Option A: One-Liner (Simplest)
+### 🔐 Option A: With 1Password CLI (No Manual Passwords!)
+
+If you have 1Password CLI set up:
+
+```bash
+# Basic (recommended for most users)
+./provision_vps_1password.sh --domain="robin-easy.bnr.la"
+
+# With SSH key
+./provision_vps_1password.sh \
+  --ssh-key="$(cat ~/.ssh/id_ed25519.pub)" \
+  --domain="robin-easy.bnr.la"
+```
+
+**Benefits:** No manual password typing! See [1PASSWORD_SETUP.md](1PASSWORD_SETUP.md) for setup.
+
+### 📝 Option B: Manual Password Entry (Traditional)
+
+#### B1: One-Liner (Simplest)
 
 ```bash
 ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
 ```
 
-### Option B: With Your SSH Key
+#### B2: With Your SSH Key
 
 ```bash
 ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
   --ssh-key="$(cat ~/.ssh/id_ed25519.pub)"
 ```
 
-### Option C: With Domain (Recommended for HTTPS)
+#### B3: With Domain (Recommended for HTTPS)
 
 ```bash
 ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \

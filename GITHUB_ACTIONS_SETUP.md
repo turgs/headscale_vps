@@ -77,6 +77,19 @@ cat ~/.ssh/headscale_vps_deploy.pub
 
 From your local machine, provision the VPS:
 
+**Option A: With 1Password CLI (No Manual Password Entry)**
+
+If you have 1Password CLI set up (see [1PASSWORD_SETUP.md](1PASSWORD_SETUP.md)):
+
+```bash
+# Using 1Password for authentication
+./provision_vps_1password.sh \
+  --ssh-key="$(cat ~/.ssh/headscale_vps_deploy.pub)" \
+  --domain="robin-easy.bnr.la"
+```
+
+**Option B: Manual Password Entry (Traditional)**
+
 ```bash
 # Using the domain (recommended)
 ssh root@103.100.37.13 'bash -s' < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh) \
