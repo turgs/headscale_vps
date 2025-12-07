@@ -138,7 +138,12 @@ main() {
         echo ""
         echo "Next Steps:"
         echo "  1. Wait 2-3 minutes for VPS to reboot"
-        echo "  2. SSH with: ssh deploy@robin-easy.bnr.la -p 33003"
+        
+        # Extract domain from VPS_HOST or use the IP/hostname provided
+        local ssh_host="${VPS_HOST#root@}"
+        [[ "$ssh_host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && ssh_host="<your-domain-or-ip>"
+        
+        echo "  2. SSH with: ssh deploy@${ssh_host} -p 33003"
         echo "  3. Run exit node setup: curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/setup_exit_node.sh | bash"
         echo ""
     else

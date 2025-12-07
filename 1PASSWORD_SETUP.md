@@ -292,6 +292,20 @@ eval $(op signin --session-duration 3600)  # 1 hour
 4. **Audit Access**: Review 1Password activity logs regularly
 5. **Secure Your Workstation**: Enable disk encryption and screen lock
 
+### Important Security Trade-offs
+
+⚠️ **SSH Host Key Verification**: The helper scripts use `StrictHostKeyChecking=no` for convenience in automated workflows. This means:
+- **Trade-off**: Easier automation but vulnerable to man-in-the-middle attacks
+- **Risk**: An attacker could intercept your connection on first connect
+- **Mitigation**: Only use on trusted networks, or manually verify host keys first
+- **Production Alternative**: Pre-populate `~/.ssh/known_hosts` with your VPS's host key
+
+⚠️ **Script Source Verification**: The provisioning downloads scripts from GitHub without checksum verification:
+- **Trade-off**: Simpler setup but relies on GitHub's security
+- **Risk**: If the repository is compromised, malicious code could be executed
+- **Mitigation**: Review scripts before running, use specific commit hashes instead of 'main'
+- **Production Alternative**: Clone the repository and run scripts locally
+
 ### When NOT to Use Password Authentication
 
 After initial provisioning, you should:

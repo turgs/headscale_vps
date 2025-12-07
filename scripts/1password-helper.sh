@@ -64,12 +64,13 @@ get_password_from_1password() {
     local item_name="$1"
     local field_name="$2"
     
-    # Try to get password
+    # Try to get password and check exit code explicitly
     local password
-    password=$(op item get "$item_name" --fields "$field_name" 2>/dev/null || echo "")
+    local exit_code=0
+    password=$(op item get "$item_name" --fields "$field_name" 2>/dev/null) || exit_code=$?
     
-    if [[ -z "$password" ]]; then
-        echo "❌ Error: Could not retrieve password from 1Password" >&2
+    if [[ $exit_code -ne 0 ]] || [[ -z "$password" ]]; then
+        echo "❌ Error: Could not retrieve password from 1Password (exit code: $exit_code)" >&2
         echo "" >&2
         echo "Make sure you have:" >&2
         echo "  • A secure note named: '$item_name'" >&2
@@ -96,8 +97,11 @@ ssh_with_1password() {
     password=$(get_password_from_1password "$OP_ITEM_NAME" "$OP_FIELD_NAME") || return 1
     
     # Use sshpass to provide password to SSH
-    # -o StrictHostKeyChecking=accept-new to avoid interactive prompt for new hosts
-    SSHPASS="$password" sshpass -e ssh -o StrictHostKeyChecking=accept-new "$@"
+    # Note: Using StrictHostKeyChecking=no for convenience in automated workflows
+    # For production use, consider pre-populating known_hosts or using yes instead of no
+    # Warning: This accepts any host key, which could allow MITM attacks
+    echo "⚠️  Warning: Accepting new host keys automatically (security trade-off for automation)" >&2
+    SSHPASS="$password" sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
 }
 
 # Run remote command with password from 1Password
@@ -114,7 +118,9 @@ run_remote_with_1password() {
     password=$(get_password_from_1password "$OP_ITEM_NAME" "$OP_FIELD_NAME") || return 1
     
     # Use sshpass to provide password to SSH
-    SSHPASS="$password" sshpass -e ssh -o StrictHostKeyChecking=accept-new "$host" "$command"
+    # Warning: This accepts any host key for automation convenience
+    echo "⚠️  Warning: Accepting new host keys automatically (security trade-off for automation)" >&2
+    SSHPASS="$password" sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$host" "$command"
 }
 
 # Provision VPS with password from 1Password
@@ -134,7 +140,11 @@ provision_vps_with_1password() {
     echo ""
     
     # Download and run provision script with password authentication
-    SSHPASS="$password" sshpass -e ssh -o StrictHostKeyChecking=accept-new "$host" 'bash -s' "$@" < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
+    # Note: Downloads from main branch - consider using a specific tag/commit in production
+    # Warning: This accepts any host key for automation convenience
+    echo "⚠️  Warning: Accepting new host keys automatically (security trade-off for automation)" >&2
+    echo "⚠️  Warning: Downloading script from GitHub main branch (consider using a specific tag)" >&2
+    SSHPASS="$password" sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$host" 'bash -s' "$@" < <(curl -fsSL https://raw.githubusercontent.com/turgs/headscale_vps/main/provision_vps.sh)
 }
 
 # Export functions for use in other scripts
