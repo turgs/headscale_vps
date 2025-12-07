@@ -376,7 +376,7 @@ sudo systemctl status headscale
 sudo ufw status
 
 # If using domain, check DNS
-curl -I https://vpn.bethanytim.com
+curl -I https://robin-easy.bnr.la
 
 # Check routes
 sudo headscale routes list
