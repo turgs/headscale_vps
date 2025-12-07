@@ -1,0 +1,17 @@
+# DNS Allowlist - Domains to never block
+# Add one domain per line. Comments start with #
+# These domains will be explicitly allowed even if they appear in blocklists
+#
+# Format: domain.com (without protocol or path)
+# Example entries:
+
+# YouTube - Already allowed by default in provision_vps.sh
+youtube.com
+googlevideo.com
+ytimg.com
+ggpht.com
+
+# Common false positives you might want to allow:
+# facebook.com
+# instagram.com
+# twitter.com
