@@ -290,10 +290,10 @@ with open(config_file, 'r') as f:
     content = f.read()
 
 # Find and replace the user_rules section
-# Pattern matches: user_rules:\n  - 'rule1'\n  - 'rule2'... until next top-level key
-pattern = r'(user_rules:)(?:\s*-\s*[^\n]+\n)*'
+# Pattern matches: user_rules: followed by lines starting with "  - "
+pattern = r'(user_rules:)(?:\n\s*-\s*[^\n]+)*'
 
-replacement = 'user_rules:\n' + new_rules + '\n'
+replacement = 'user_rules:\n' + new_rules
 
 # Replace the user_rules section
 new_content = re.sub(pattern, replacement, content, flags=re.MULTILINE)
@@ -314,11 +314,20 @@ echo "Config file updated"
 SCRIPT_EOF
 )
     
-    # Execute update on VPS by piping both the script and the user_rules
+    # Execute update on VPS
+    # We pipe user_rules to the update script which runs remotely via SSH
     info "Updating AdGuard Home configuration..."
-    if echo "$user_rules" | $ssh_cmd "bash -s -- $ADGUARD_CONFIG_PATH" <<< "$update_script"; then
+    
+    # Create a temporary file to hold the update script for better error handling
+    local temp_script="/tmp/adguard-update-$$.sh"
+    echo "$update_script" > "$temp_script"
+    
+    # Execute: Send update script via SSH and pipe user_rules to it
+    if echo "$user_rules" | $ssh_cmd "bash -s -- $ADGUARD_CONFIG_PATH" < "$temp_script"; then
+        rm -f "$temp_script"
         success "Configuration updated on VPS"
     else
+        rm -f "$temp_script"
         error "Failed to update configuration"
     fi
 }

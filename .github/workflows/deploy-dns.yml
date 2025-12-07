@@ -57,13 +57,17 @@ jobs:
           echo "Allowlist domains: $allowlist_count"
           echo "Blocklist domains: $blocklist_count"
           
-          # Validate domain format (basic check)
-          if grep -Ev '^(#.*|[[:space:]]*|[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*.*)$' config/dns-allowlist.txt | grep -v '^[[:space:]]*$'; then
+          # Define domain validation regex (shared for both files)
+          DOMAIN_REGEX='^(#.*|[[:space:]]*|[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*.*)$'
+          
+          # Validate domain format in allowlist
+          if grep -Ev "$DOMAIN_REGEX" config/dns-allowlist.txt | grep -v '^[[:space:]]*$'; then
             echo "ERROR: Invalid domain format in allowlist"
             exit 1
           fi
           
-          if grep -Ev '^(#.*|[[:space:]]*|[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*.*)$' config/dns-blocklist.txt | grep -v '^[[:space:]]*$'; then
+          # Validate domain format in blocklist
+          if grep -Ev "$DOMAIN_REGEX" config/dns-blocklist.txt | grep -v '^[[:space:]]*$'; then
             echo "ERROR: Invalid domain format in blocklist"
             exit 1
           fi
