@@ -35,7 +35,10 @@ jobs:
             exit 1
           fi
           
-          source config/vps-config.txt
+          # Safely parse config file (only extract expected variables)
+          VPS_DOMAIN=$(grep '^VPS_DOMAIN=' config/vps-config.txt | cut -d'=' -f2)
+          SSH_PORT=$(grep '^SSH_PORT=' config/vps-config.txt | cut -d'=' -f2)
+          SSH_USER=$(grep '^SSH_USER=' config/vps-config.txt | cut -d'=' -f2)
           
           # Validate required variables
           if [[ -z "${VPS_DOMAIN:-}" ]]; then
@@ -58,8 +61,8 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY }}" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
           
-          # Build arguments from config file
-          ARGS="--host=$VPS_DOMAIN --ssh-key=$KEY_FILE --ssh-port=$SSH_PORT --ssh-user=$SSH_USER"
+          # Build arguments from config file (properly quoted)
+          ARGS="--host=\"$VPS_DOMAIN\" --ssh-key=\"$KEY_FILE\" --ssh-port=\"$SSH_PORT\" --ssh-user=\"$SSH_USER\""
           [[ "${{ inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
           
-          ./scripts/deploy-dns.sh $ARGS
+          eval "./scripts/deploy-dns.sh $ARGS"
