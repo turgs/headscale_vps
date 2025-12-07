@@ -8,6 +8,24 @@ Automated script to provision an Ubuntu VPS as a Headscale server and exit node 
 
 ## 🚀 Quick Start
 
+### Option A: With 1Password CLI (Recommended - No Manual Password Entry)
+
+Automatically use your root password from 1Password:
+
+```bash
+# One-time setup: See 1PASSWORD_SETUP.md
+./provision_vps_1password.sh --domain="robin-easy.bnr.la"
+```
+
+**Benefits:**
+- ✅ No manual password typing
+- ✅ Secure password storage
+- ✅ Perfect for automation
+
+See **[1PASSWORD_SETUP.md](1PASSWORD_SETUP.md)** for complete setup instructions.
+
+### Option B: Manual Password Entry (Traditional)
+
 Run this one command on your fresh Ubuntu 22.04/24.04 VPS:
 
 ```bash
@@ -244,6 +262,23 @@ sudo systemctl restart adguardhome
 
 ## 🔧 Configuration Options
 
+### Using 1Password CLI (No Manual Passwords)
+
+If you have 1Password CLI set up (see [1PASSWORD_SETUP.md](1PASSWORD_SETUP.md)):
+
+```bash
+# Basic provisioning
+./provision_vps_1password.sh
+
+# With options
+./provision_vps_1password.sh \
+  --ssh-key="$(cat ~/.ssh/id_ed25519.pub)" \
+  --domain="robin-easy.bnr.la" \
+  --swap-size=4G
+```
+
+### Using Standard Script (Manual Password Entry)
+
 When running the provision script, you can customize:
 
 ```bash
@@ -381,6 +416,8 @@ When you provide a domain using `--domain=robin-easy.bnr.la`, the script automat
 
 ## 📚 Additional Documentation
 
+- **[1PASSWORD_SETUP.md](1PASSWORD_SETUP.md)** - 1Password CLI integration (eliminate manual passwords!)
+- **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)** - Practical examples and use cases for 1Password integration
 - **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step setup guide
 - **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Admin reference (users, ACLs, backups)
 - **[SPLIT_TUNNELING.md](SPLIT_TUNNELING.md)** - Split tunneling guide
@@ -393,9 +430,12 @@ When you provide a domain using `--domain=robin-easy.bnr.la`, the script automat
 ## 📁 Repository Files
 
 ```
-├── provision_vps.sh          # Main setup script (run this)
+├── provision_vps.sh          # Main setup script (manual password entry)
+├── provision_vps_1password.sh # Setup script with 1Password integration
 ├── setup_exit_node.sh        # Post-install exit node helper
 ├── test_setup.sh             # Remote VPS verification
+├── 1PASSWORD_SETUP.md        # 1Password CLI integration guide
+├── USAGE_EXAMPLES.md         # Practical 1Password usage examples
 ├── QUICKSTART.md             # Quick setup guide
 ├── ADMIN_GUIDE.md            # Admin reference
 ├── SPLIT_TUNNELING.md        # Split tunneling guide
@@ -403,7 +443,10 @@ When you provide a domain using `--domain=robin-easy.bnr.la`, the script automat
 │   └── workflows/
 │       └── deploy-dns.yml    # GitHub Actions workflow for DNS deployment
 ├── scripts/
-│   └── deploy-dns.sh         # DNS deployment script
+│   ├── deploy-dns.sh         # DNS deployment script
+│   └── 1password-helper.sh   # 1Password CLI helper functions
+├── tests/
+│   └── test_1password_helper.sh # Unit tests for 1Password integration
 └── config/
     ├── vps-config.txt        # VPS configuration (provider, domain, IP)
     ├── deploy.yml            # Kamal config (for updates)
